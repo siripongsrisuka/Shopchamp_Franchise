@@ -1,0 +1,11 @@
+{
+    "pdf":{
+      "nonTable":"ยังไม่มีโต๊ะ",
+      "scanQr":"Scan to Order",
+      "part1":"กรุณาสแกน QR Code",
+      "part2":"เพื่อเริ่มสั่งอาหาร",
+      "loading":"กำลังสร้างไฟล์...",
+      "download":"ดาวน์โหลดไฟล์",
+      "fileName":"QRCode ติดโต๊ะแบบถาวร {{name}}.pdf"
+    }
+}

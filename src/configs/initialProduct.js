@@ -1,0 +1,38 @@
+export default {
+        barcode:'',
+        barcodeStatus:true,
+        cashierShow:false,
+        category:[],
+        consignment:false,
+        cost:'',
+        // delivery:false,
+        imageId:'',
+        name:'',
+        price:'',
+        // promotion:{
+        //     status:false,
+        //     qty:'',
+        //     price:'',
+        //     startDate:new Date(),
+        //     endDate:lastDayOfMonth(),
+        // },
+        rent:false,
+        safetyStock:{
+            status:false,
+            qty:''
+        },
+        shopId:'',
+        sku:'',
+        // stock:'',
+        unit:'ชิ้น',
+        vatExemption:false,
+        // expReport:[],
+        // priceLevelStatus:false,
+        // priceLevel:[],
+        pointStatus:true,
+        stockCountStatus:true,
+        customQtyStatus:false,
+        customPriceStatus:false,
+        selfImage:false,
+        updateTime:new Date(2011, 0, 1, 0, 0, 0, 0)
+}

@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "shopcham-24b0b"
+  },
+  "targets": {
+    "shopcham-24b0b": {
+      "hosting": {
+        "shopchamp-merchant-wholesale": [
+          "shopchamp-merchant-wholesale"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
