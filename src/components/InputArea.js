@@ -11,19 +11,28 @@ import {
   Image,
   Collapse,
 } from "react-bootstrap";
+import RedStar from "./RedStar";
 
 function InputArea({
     name='name',
     placeholder="Put here...",
     onChange,
-    value
+    value,
+    strict=false,
+    style
 }) {
 
   return (
     <Form.Group as={Row} className="mb-3" controlId="formPlaintextPassword">
-        <Form.Label column sm="3">
-            {name}
-        </Form.Label>
+        {strict
+            ?<Form.Label column sm="3" style={{display:'flex'}} >
+                {name}
+                <RedStar/>
+            </Form.Label>
+            :<Form.Label column sm="3">
+                {name}
+            </Form.Label>
+        }
         <Col sm="9">
         <Form.Control 
             as="textarea" rows={3}
@@ -31,6 +40,7 @@ function InputArea({
             onChange={onChange}
             value={value}
             name={name}
+            style={style}
         />
         </Col>
     </Form.Group>

@@ -10,7 +10,11 @@ import {
   RankingByShop,
   RankingByItem,
   ProfileScreen,
-  StaffScreen
+  StaffScreen,
+  ReportScreen,
+  WarehouseCategoryScreen,
+  WarehouseScreen,
+  StockLinkScreen
 } from './screens';
 import { useSelector, useDispatch } from 'react-redux';
 import { login } from './redux/authSlice';
@@ -91,6 +95,10 @@ function App() {
                   <Route path='rankingItem'  element={<RankingByItem/>} />
                   <Route path='profile'  element={<ProfileScreen/>} />
                   <Route path='staff'  element={<StaffScreen/>} />
+                  <Route path='report' element={<ReportScreen/>} />
+                  <Route path='warehouseCategory' element={<WarehouseCategoryScreen/>} />
+                  <Route path='warehouse' element={<WarehouseScreen/>} />
+                  <Route path='stockLink' element={<StockLinkScreen/>} />
               </Route>
 
           </Routes>

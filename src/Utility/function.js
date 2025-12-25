@@ -7,6 +7,8 @@ export function toastSuccess(text='🟢 Updated successful!'){
   toast.success(text);
 };
 
+
+
   export function includesOutInArray(arr,propertise,value){
     let res = []
     for(const item of arr){
@@ -16,6 +18,72 @@ export function toastSuccess(text='🟢 Updated successful!'){
     }
     return res
   };
+
+    export function checkAddCategory(smartCategory,thisLevel,productCategory,callBack){
+    const { level, value, } = thisLevel;
+    let res = []
+   
+      if(level>1){
+        let previousLevel = findInArray(smartCategory,'level',level-1)
+        let havePreviousLevel = false
+        let previousId = ''
+        let previousValue = {}
+        for(const item of productCategory){
+          previousValue = findInArray(previousLevel.value,'id',item.id)
+          if(previousValue && previousValue.id){
+            havePreviousLevel = true
+            previousId = previousValue.id
+            break;
+          }
+        }
+        if(havePreviousLevel){
+          for(const item of value){
+            if(compareArrays(item.aboveId,[...previousValue.aboveId,previousId])){
+              res.push(item)
+            }
+          }
+          if(res.length >0){
+            callBack()
+          } else {
+            alert('ยังไม่มีหมวดหมู่ย่อยนี้')
+          }
+        } else {
+          alert('กรุณาเลือกหมวดหมู่ในลำดับข้างบนก่อน')
+        }
+      } else {
+        res = value
+        callBack()
+      }
+    
+   
+    return res;
+  };
+
+    export function twoDigitNumber(inputValue){
+    inputValue = inputValue.replace(/[^0-9\.]/g,'')
+    var afterDot = '';
+    var beforeDots = inputValue.split('.'); 
+    var beforeDot = beforeDots[0];
+    if(beforeDots[1]){
+        var afterDot = beforeDots[1];
+        if(afterDot.length > 2 ){
+             afterDot = afterDot.slice(0, 2);               
+        }
+        afterDot = '.'+ afterDot;
+  
+    }
+    if(beforeDot){                  
+        // if(beforeDot.length > 6 ){          
+        //     beforeDot = beforeDot.slice(0, 6);                      
+        // }
+        if(beforeDots[1] == ''){
+            beforeDot = beforeDot + '.';
+        }
+    }
+    inputValue = beforeDot + afterDot;
+    return inputValue;
+  };
+
 
 export function mapInArray(arr,propertise,key,value){
   return arr.map((item)=>{

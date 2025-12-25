@@ -13,6 +13,8 @@ import billReducer from './billSlice';
 import deviceReducer from './deviceSlice';
 
 import franchiseReducer from './franchiseSlice';
+import warehouseReducer from './warehouseSlice';
+import stockLinkReducer from './stockLinkSlice';
 
   const rootPersistConfig = {
       key: 'root',
@@ -55,6 +57,8 @@ import franchiseReducer from './franchiseSlice';
     bill:billReducer,
     device:persistReducer(devicePersistConfig, deviceReducer),
     franchise:persistReducer(franchisePersistConfig, franchiseReducer),
+    warehouse:warehouseReducer,
+    stockLink:stockLinkReducer,
 
   })
   const persistedReducer = persistReducer(rootPersistConfig, rootReducer)

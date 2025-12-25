@@ -5,7 +5,18 @@ export const getHoursMinute = (today) => {
         day.getMinutes().toString().padStart(2,"0") 
 
     return cDateTime;  //00:25 น.
-}
+};
+
+export const stringReceiptNumber = (receipts) => {
+    const date = new Date()
+    const cDateTime =
+        date.getFullYear().toString().padStart(4,"0")+"" +
+        parseInt(date.getMonth()+1).toString().padStart(2,"0") +""+
+        receipts.toString().padStart(6,"0")
+
+    return cDateTime;  // 202309000123
+};
+
 
 export function plusDays(date, days) {
     var result = new Date(date);

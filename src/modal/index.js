@@ -10,8 +10,16 @@ import Modal_FindShop from "./Modal_FindShop";
 import Modal_Franchise from "./Modal_Franchise";
 import Modal_FindHuman from "./Modal_FindHuman";
 import Modal_Human from "./Modal_Human";
+import Modal_Warehouse from "./Modal_Warehouse";
+import Modal_SearchFlatlist from "./Modal_SearchFlatlist";
+import Modal_TwoInput from "./Modal_TwoInput";
+import Modal_StockLink from "./Modal_StockLink";
 
 export { 
+    Modal_StockLink,
+    Modal_TwoInput,
+    Modal_SearchFlatlist,
+    Modal_Warehouse,
     Modal_FindShop,
     Modal_CategorySetting,
     Modal_OneInput,

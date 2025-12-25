@@ -10,8 +10,10 @@ import initialFranchise from "./initialFranchise";
 import initialAdmin from "./initialAdmin";
 import chainStoreFranchise from "./chainStoreFranchise";
 import initialShop from "./initialShop";
+import initialWarehouseItem from "./initialWarehouseItem";
 
 export { 
+    initialWarehouseItem,
     initialShop,
     chainStoreFranchise,
     initialAdmin,

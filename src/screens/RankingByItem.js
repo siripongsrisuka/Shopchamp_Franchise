@@ -112,7 +112,7 @@ function RankingByItem() {
       
         // Add the total row with "รวม" spanning two columns
         data.push([
-          "รวม",'', // These will be merged
+          "รวม",'','', // These will be merged
           allQty,
           allTotalPrice,
         ]);

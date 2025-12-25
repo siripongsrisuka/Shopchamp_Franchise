@@ -10,7 +10,7 @@ import 'firebase/storage'
 
 
 import { stringYMDHMS } from '../Utility/dateTime';
-
+import { v4 as uuidv4 } from 'uuid';
 
 // // shopchamp-restaurant
 // const firebaseConfig = {
@@ -45,6 +45,43 @@ const firebaseConfig = {
 
   export {db,firebaseAuth,firebaseStorage}
 
+  export const webImageDelete = async (oldUrltoDelete=null) => {
+    const oldFileRef = await firebaseStorage.refFromURL(oldUrltoDelete).fullPath;
+    // alert(oldFileRef);
+    
+    firebaseStorage.ref(oldFileRef).getDownloadURL()
+      .then(()=>{
+        firebaseStorage.ref(oldFileRef).delete();
+        // alert('success delete file in firebaseStorage!')
+      })
+      .catch((err)=>{
+        console.log('oldUrltoDelete file does not exits!')
+        // alert('oldUrltoDelete file does not exits!')
+        console.log(err);
+      }); 
+  
+  };
+  
+  export const prepareFirebaseImage2 = async (imageData, storageRef, franchiseId) => {
+    let imageUrl = '';
+    
+    // Extract the image format (e.g., png, jpg, gif) from the data URL
+    const imageFormat = imageData.match(/^data:image\/(\w+);base64,/)?.[1]; // Extract the format (e.g., png, gif, jpg)
+    if (!imageFormat) {
+      throw new Error('Invalid image format'); // Handle unsupported formats
+    }
+  
+    const fileName = franchiseId + uuidv4(); // Add timestamp to prevent overwriting
+    const filePath = `${storageRef}${fileName}.png`; // Set the file path with the correct extension
+    
+    // Upload image to Firebase Storage with the correct contentType
+    await firebaseStorage.ref(filePath).putString(imageData, 'data_url', { contentType: `image/png` });
+    
+    // Get the download URL of the uploaded image
+    imageUrl = await firebaseStorage.ref(filePath).getDownloadURL();
+  
+    return imageUrl;
+  };
 
   export const prepareFirebaseImage = async (imageData,storageRef,oldUrltoDelete=null) => { // auto check format and prepare URL to send image file and get URL
     // Example to use ...

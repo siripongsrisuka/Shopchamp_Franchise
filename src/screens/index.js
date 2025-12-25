@@ -8,8 +8,13 @@ import RankingByShop from "./RankingByShop";
 import RankingByItem from "./RankingByItem";
 import ProfileScreen from "./ProfileScreen";
 import StaffScreen from "./StaffScreen";
+import ReportScreen from "./ReportScreen";
+import WarehouseScreen from "./WarehouseScreen";
+import StockLinkScreen from "./StockLinkScreen";
 
 export {
+    StockLinkScreen,
+    ReportScreen,
     StaffScreen,
     BranchScreen,
     WarehouseCategoryScreen,
@@ -19,5 +24,6 @@ export {
     DashboardScreen,
     RankingByShop,
     RankingByItem,
-    ProfileScreen
+    ProfileScreen,
+    WarehouseScreen
 };

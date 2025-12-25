@@ -14,9 +14,14 @@ import TimeControlBill from "./TimeControlBill";
 import SearchAndDownload from "./SearchAndDownload";
 import InputText from "./InputText";
 import DeleteButton from "./DeleteButton";
-
+import CategoryControl from "./CategoryControl";
+import InputArea from "./InputArea";
+import RedStar from "./RedStar";
 
 export {
+    RedStar,
+    InputArea,
+    CategoryControl,
     DeleteButton,
     InputText,
     SearchAndDownload,

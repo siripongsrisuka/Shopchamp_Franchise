@@ -9,20 +9,20 @@ export default [
       id:'100'
     },
     {
-      topic: '1.4 ยอดขายตามร้านค้า',
+      topic: '1.2 ยอดขายตามร้านค้า',
       icon:'bi-shop',
       to:'rankingShop',
       id:'103'
     },
     {
-      topic: '1.5 ยอดขายตามสินค้า',
+      topic: '1.3 ยอดขายตามสินค้า',
       icon:'bi-shop',
       to:'rankingItem',
       id:'104'
     },
    
     {
-      topic: '1.9 Overview',
+      topic: '1.4 Overview',
       icon: 'bi-speedometer',
       to: 'report',
       id:'107'
@@ -32,41 +32,50 @@ export default [
       
     },
     {
-      topic: '7.1 หมวดหมู่สินค้า',
+      topic: '2.1 หมวดหมู่สินค้า',
       icon: 'bi-speedometer',
-      to: 'branch',
+      to: 'warehouseCategory',
       id:'128'
     },
     {
-      label: '7. จัดการสาขา',
+      topic: '2.2 คลังสินค้า',
+      icon: 'bi-speedometer',
+      to: 'warehouse',
+      id:'128'
+    },
+    {
+      topic: '2.3 ผูกรายการสินค้า',
+      icon: 'bi-speedometer',
+      to: 'stockLink',
+      id:'128'
+    },
+    {
+      label: '3. จัดการสาขา',
     },
     
     {
-      topic: '7.1 สาขาทั้งหมด',
+      topic: '3.1 สาขาทั้งหมด',
       icon: 'bi-speedometer',
       to: 'branch',
       id:'128'
     },
    
     {
-        label: '8. พนักงาน',
+        label: '4. พนักงาน',
       },
       {
-        topic: '8.1 กำหนดสิทธิ์',
+        topic: '4.1 กำหนดสิทธิ์',
         icon: 'bi-speedometer',
         to: 'staff',
         id:'723'
       },
       {
-        label: '9. จัดการโปรไฟล์',
+        label: '5. จัดการโปรไฟล์',
       },
       {
-        topic: '9.1 โปรไฟล์',
+        topic: '5.1 โปรไฟล์',
         icon: 'bi-speedometer',
         to: 'profile',
         id:'130'
-      },
-      {
-        label: 'ออกจากระบบ',
       },
   ]
