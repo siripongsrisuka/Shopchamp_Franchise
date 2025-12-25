@@ -722,3 +722,12 @@ export function managePromotion(products){
       thisCampaign
     }
   };
+
+  export const chunkArray = (arr, size = 10) => {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+};
+

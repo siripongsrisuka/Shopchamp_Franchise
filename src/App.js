@@ -6,7 +6,11 @@ import {
   FranchiseListScreen,
   FranchisorScreen,
   DashboardScreen,
-  BranchScreen
+  BranchScreen,
+  RankingByShop,
+  RankingByItem,
+  ProfileScreen,
+  StaffScreen
 } from './screens';
 import { useSelector, useDispatch } from 'react-redux';
 import { login } from './redux/authSlice';
@@ -82,6 +86,11 @@ function App() {
               <Route path='franchisor' element={<FranchisorScreen/>} >
                   <Route index  element={<DashboardScreen/>} />
                   <Route path='branch'  element={<BranchScreen/>} />
+                  <Route path='dashboard'  element={<DashboardScreen/>} />
+                  <Route path='rankingShop'  element={<RankingByShop/>} />
+                  <Route path='rankingItem'  element={<RankingByItem/>} />
+                  <Route path='profile'  element={<ProfileScreen/>} />
+                  <Route path='staff'  element={<StaffScreen/>} />
               </Route>
 
           </Routes>

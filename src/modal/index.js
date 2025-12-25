@@ -7,6 +7,9 @@ import Modal_Splash from "./Modal_Splash";
 import Modal_OneInput from "./Modal_OneInput";
 import Modal_CategorySetting from "./Modal_CategorySetting";
 import Modal_FindShop from "./Modal_FindShop";
+import Modal_Franchise from "./Modal_Franchise";
+import Modal_FindHuman from "./Modal_FindHuman";
+import Modal_Human from "./Modal_Human";
 
 export { 
     Modal_FindShop,
@@ -17,5 +20,8 @@ export {
     Modal_Receipt,
     Modal_Product,
     Modal_FlatListTwoColumn,
-    Modal_Splash
+    Modal_Splash,
+    Modal_Franchise,
+    Modal_FindHuman,
+    Modal_Human
 };

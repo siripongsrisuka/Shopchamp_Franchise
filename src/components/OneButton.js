@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "react-bootstrap";
 
-function OneButton({ text, submit, variant }) {
+function OneButton({ text, submit, variant='warning' }) {
 
     function handle(){
         submit()

@@ -1,83 +1,118 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import {
   Row,
   Col,
 } from "react-bootstrap";
 import { colors } from "../configs";
-import { formatCurrency, summary } from "../Utility/function";
+import { createLabel, summary } from "../Utility/function";
 import ChartScreen from "../components/ChartScreen";
 import { Button } from 'rsuite';
-import { stringYMDHMS3 } from "../Utility/dateTime";
-import { shopchampRestaurantAPI } from "../Utility/api";
-import { Modal_Loading } from "../modal";
 import { normalSort } from "../Utility/sort";
+import TimeControlBill from "../components/TimeControlBill";
 
 const { lightGray, white } = colors;
-
+const translates = {
+  '1':'01:00 น.',
+  '2':'02:00 น.',
+  '3':'03:00 น.',
+  '4':'04:00 น.',
+  '5':'05:00 น.',
+  '6':'06:00 น.',
+  '7':'07:00 น.',
+  '8':'08:00 น.',
+  '9':'09:00 น.',
+  '10':'10:00 น.',
+  '11':'11:00 น.',
+  '12':'12:00 น.',
+  '13':'13:00 น.',
+  '14':'14:00 น.',
+  '15':'15:00 น.',
+  '16':'16:00 น.',
+  '17':'17:00 น.',
+  '18':'18:00 น.',
+  '19':'19:00 น.',
+  '20':'20:00 น.',
+  '21':'21:00 น.',
+  '22':'22:00 น.',
+  '23':'23:00 น.',
+  '0':'00:00 น.',
+};
 
 function DashboardScreen() {
-    const { shop } = useSelector((state)=> state.shop);
-    const [loading, setLoading] = useState(false);
-    const [store, setStore] = useState([]);
-    const [thisProvince, setThisProvince] = useState([]);
-    const [region, setRegion] = useState([]);
+    const { shops } = useSelector((state)=> state.shop);
+    const { selectedBills } = useSelector((state)=> state.bill);
 
-  
+  const { shopWithSale, shopWithoutSale, topSaleProducts, datasets, totalBill, totalPrice, averageSale, allShop, store } = useMemo(()=> {
+    const shopWithSale = new Set(selectedBills.map(a=>a.shopId)).size;
+    const shopWithoutSale = shops.length - shopWithSale;
+    const products = selectedBills.flatMap(a=>a.product);
+    const productMap = new Map();
+    for(const product of products){
+        const existing = productMap.get(product.id);
+        if(existing){
+            existing.net += product.net;
+            productMap.set(product.id, existing);
+        }
+        else {
+            productMap.set(product.id, { name: product.name, net: product.net });
+        }
 
-  useEffect(()=>{
-    fetchDashboard()
-  },[])
+     
+    };
 
-  const [dashboardData, setDashboardData] = useState({ averageSale:0, datasets:[], shopWithSale:0, totalBill:0, totalPrice:0 });
-  const { averageSale, datasets, shopWithSale, totalBill, totalPrice } = dashboardData;
-
-  async function fetchDashboard(){
-    setLoading(true);
-    try {
-      const { data, status } = await shopchampRestaurantAPI.post(
-          "/franchise/dashboard/",
-          { 
-            billDate:[stringYMDHMS3(new Date())], 
-            shopIds:shop.map(a=>a.id) 
-          }
-      );
-      setDashboardData(data);
-
-      const { newShop } = data;
-
-
-      const shopData = new Map(shop.map(a=>[a.id,{ region:a.region, province:a.province, name:a.name }]));
-
-      const newShopWithData = newShop.map(a=>({...a, ...(shopData.get(a.shopId)||{})}))
-
-      setStore(normalSort('net',newShopWithData).slice(0,10));
-
-  
-      const newRegion = [].map(a=>({...a,net:summary(newShopWithData.filter(b=>b.region===a.id),'net')})).filter(b=>b.net>0)
-      setRegion(normalSort('net',newRegion).slice(0,10))
-  
-      const newProvince = [].map(a=>({...a,net:summary(newShopWithData.filter(b=>b.province===a.id),'net')})).filter(b=>b.net>0)
-      setThisProvince(normalSort('net',newProvince).slice(0,10))
-    } catch (error) {
-      alert(error)
-    } finally {
-      setLoading(false)
+    const topSaleProducts = normalSort('net',[...productMap.values()]).slice(0,10);
+    const shopMap = new Map(shops.map(a=>[a.id,a.name]));
+    const topSaleShopsMap = new Map();
+    for(const bill of selectedBills){
+      if(topSaleShopsMap.has(bill.shopId)){
+        const existing = topSaleShopsMap.get(bill.shopId);
+        existing.net += bill.net;
+        topSaleShopsMap.set(bill.shopId, existing);
+      }
+      else {
+        topSaleShopsMap.set(bill.shopId, { name: shopMap.get(bill.shopId), net: bill.net });
+      }
     }
+    const store = normalSort('net',[...topSaleShopsMap.values()]).slice(0,10);
 
-  }
+    const datasets = [] // ยอดขายรายชั่วโมง
+    const labels = createLabel(0)
+    for (const item of labels) {
+        let arr = selectedBills.filter((a)=>{return(new Date(a.dateTime).getHours()==item)})
+        datasets.push({name:translates[item],ยอดขายรายชั่วโมง:parseFloat(summary(arr, 'net').toFixed(2)),billQty:arr.length})
+    };
+
+    const totalPrice = summary(selectedBills, 'net');
+    const totalBill = selectedBills.length;
+    const averageSale = totalBill > 0 ? totalPrice / totalBill : 0;
+    const allShop = shops.length
+    return {  
+      shopWithSale,
+      shopWithoutSale,
+      topSaleProducts,
+      totalPrice,
+      totalBill,
+      datasets,
+      averageSale:parseFloat(averageSale.toFixed(2)),
+      allShop,
+      store
+    };
+
+  }, [selectedBills, shops]);
+
 
 
   
   return (
     <div  >
       <h1>ภาพรวมธุรกิจ</h1>
-      <Modal_Loading show={loading} />
+      <TimeControlBill/>
       <Row  style={styles.container} >
           <Col  lg={12} >
             <div style={styles.container2} >
                 <div style={styles.container3} >
-                  <h4>ยอดขายรวม : <b>{formatCurrency(totalPrice)}</b> บาท</h4>
+                  <h4>ยอดขายรวม : <b>{totalPrice}</b> บาท</h4>
                 </div>
                 <ChartScreen chart={datasets} bar='ยอดขายรายชั่วโมง' name='เวลา' content="ยอดขาย" />
             </div>
@@ -91,7 +126,7 @@ function DashboardScreen() {
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
                           <Button style={styles.container8} color="red" appearance="primary" >
                           ยอดขายรวม
-                            <h6>{formatCurrency(totalPrice)}</h6>
+                            <h6>{totalPrice}</h6>
                           </Button>
                         </Col>
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
@@ -103,13 +138,13 @@ function DashboardScreen() {
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
                           <Button style={styles.container8} color="yellow" appearance="primary" >
                           Busket size
-                            <h6>{formatCurrency(averageSale)}</h6>
+                            <h6>{averageSale}</h6>
                             </Button>
                         </Col>
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
                           <Button style={styles.container8}color="cyan" appearance="primary" >
                           ร้านทั้งหมด
-                            <h6>{shop.length}</h6>
+                            <h6>{allShop}</h6>
                           </Button>
                         </Col>
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
@@ -121,7 +156,7 @@ function DashboardScreen() {
                         <Col xs='12' sm='6' md='4' style={styles.container7} >
                           <Button style={styles.container8}color="violet" appearance="primary" >
                           ร้านที่ไม่มียอด
-                            <h6>{shop.length- shopWithSale}</h6>
+                            <h6>{shopWithoutSale}</h6>
                           </Button>
                         </Col>
                     </Row>
@@ -141,33 +176,20 @@ function DashboardScreen() {
                                             {a.name}
                                             </Col>
                                             <Col>
-                                            {formatCurrency(a.net)}
+                                            {a.net}
                                             </Col>
                                         </Row>
                                 })}
                           </Col>
-                          <Col  xs='12' sm='12' md='12' lg='6'  style={{cursor:'pointer',marginBottom:'1rem'}}>
-                              <h5>จังหวัด</h5>
-                                {thisProvince.map((a,i)=>{
-                                  return <Row key={i} >
-                                            <Col xs='6' >
-                                            {a.name_th}
-                                            </Col>
-                                            <Col xs='6' >
-                                            {formatCurrency(a.net)}
-                                            </Col>
-                                        </Row>
-                                })}
-                          </Col>
-                          <Col  xs='12' sm='12' md='12' lg='6'  style={{cursor:'pointer',marginBottom:'1rem'}} >
-                              <h5>ภูมิภาค</h5>
-                                {region.map((a,i)=>{
+                          <Col  xs='12' sm='12' md='12' lg='6'   style={{cursor:'pointer',marginBottom:'1rem'}} >
+                              <h5>สินค้า</h5>
+                                {topSaleProducts.map((a,i)=>{
                                   return <Row key={i} >
                                             <Col>
                                             {a.name}
                                             </Col>
                                             <Col>
-                                            {formatCurrency(a.net)}
+                                            {a.net}
                                             </Col>
                                         </Row>
                                 })}

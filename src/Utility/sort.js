@@ -22,3 +22,8 @@ export function reverseSort(sort,data){
     });
 }; // จากน้อยไปมาก
 
+export function sortController(key,arr,type = 'normal'){
+    return type==='normal'
+        ?normalSort(key,arr)
+        :reverseSort(key,arr)
+};  

@@ -1,7 +1,6 @@
 import FloatingText from "./FloatingText";
 import ChartScreen from "./ChartScreen";
 import NavBar from "./NavBar";
-import TimeControl from "./TimeControl";
 import Download from "./Download";
 import LineChartScreen from "./LineChartScreen";
 import PeriodControl from "./PeriodControl";
@@ -11,16 +10,23 @@ import OneButton from "./OneButton";
 import RootImage from "./RootImage";
 import FooterButton from "./FooterButton";
 import SearchAndBottom from "./SearchAndBottom";
+import TimeControlBill from "./TimeControlBill";
+import SearchAndDownload from "./SearchAndDownload";
+import InputText from "./InputText";
+import DeleteButton from "./DeleteButton";
 
 
 export {
+    DeleteButton,
+    InputText,
+    SearchAndDownload,
+    TimeControlBill,
     SearchAndBottom,
     FooterButton,
     RootImage,
     FloatingText, 
     ChartScreen,
     NavBar,
-    TimeControl,
     Download,
     LineChartScreen,
     PeriodControl,

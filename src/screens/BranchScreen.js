@@ -49,6 +49,7 @@ function BranchScreen() {
 
 
     async function handleChangeToFranchise(item){
+        setNewShop_Modal(false);
         setLoading(true);
         try {
             const updatedField = {
