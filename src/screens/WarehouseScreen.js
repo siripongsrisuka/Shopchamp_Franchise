@@ -62,7 +62,7 @@ function WarehouseScreen() {
       let result = []
       for(const item of warehouse){
           if(length >=1){
-              if(compareArrays(item.category.map(a=>a.id).slice(0,length),thisField)){
+              if(compareArrays(item.category.slice(0,length),thisField)){
                   result.push(item)
               }
           } else {
