@@ -31,25 +31,25 @@ function App() {
   const dispatch = useDispatch();
 
   
-  useEffect(() => {
-    i18n.changeLanguage(language.brev)
-    let unsubscribe;
-    async function checkAuth (){
-      unsubscribe = await firebaseAuth.onAuthStateChanged(user => {
-        if(!!user?.uid){ // ไม่มี 
-          dispatch(login(user));
-        } else {
-          let obj =  firebaseAuth.signInWithEmailAndPassword('anonymoususer@gmail.com', '123123')
-          // let obj =  firebaseAuth.signInWithEmailAndPassword('siripongsrisukha@gmail.com', '123456')
-          dispatch(login(obj));
-        }
-      })
-    }
+  // useEffect(() => {
+  //   i18n.changeLanguage(language.brev)
+  //   let unsubscribe;
+  //   async function checkAuth (){
+  //     unsubscribe = await firebaseAuth.onAuthStateChanged(user => {
+  //       if(!!user?.uid){ // ไม่มี 
+  //         dispatch(login(user));
+  //       } else {
+  //         let obj =  firebaseAuth.signInWithEmailAndPassword('anonymoususer@gmail.com', '123123')
+  //         // let obj =  firebaseAuth.signInWithEmailAndPassword('siripongsrisukha@gmail.com', '123456')
+  //         dispatch(login(obj));
+  //       }
+  //     })
+  //   }
 
-    if (!currentUser?.user) {
-      checkAuth()
-    }
-  },[]);
+  //   if (!currentUser?.user) {
+  //     checkAuth()
+  //   }
+  // },[]);
 
   // useEffect(() => {
     

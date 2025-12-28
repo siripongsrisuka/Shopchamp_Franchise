@@ -40,6 +40,8 @@ function HomeScreen() {
     setFormData(newFormData);
   };
 
+  console.log(currentUser?.user?.uid)
+
   useEffect(()=>{
     if(currentUser?.user?.uid){
       handleProfile(currentUser?.user?.uid)
@@ -87,7 +89,7 @@ function HomeScreen() {
 
   return (
     <div  style={styles.container} >
-        <Modal_Splash show={loading} />
+        {/* <Modal_Splash show={loading} /> */}
  
         <h6>Shopchamp Franchise</h6>
         <div style={styles.container2} >

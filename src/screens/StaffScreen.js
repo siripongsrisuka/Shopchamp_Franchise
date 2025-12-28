@@ -30,7 +30,6 @@ function StaffScreen() {
 
       return chainStoreFranchise.filter(a=>!a.label)
     },[type,chainStoreFranchise])
-
  
     // 200%
     async function manageHuman(){
