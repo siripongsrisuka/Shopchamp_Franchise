@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
 } from "react-bootstrap";
@@ -48,6 +48,12 @@ function WarehouseScreen() {
         dispatch(fetchWarehouse(franchiseId))
       }
   },[]);
+
+  const categoryMap = useMemo(()=>{
+    const categorys = warehouseCategory.flatMap(a=>a.value)
+    return new Map(categorys.map(a=>[a.id,a.name]))
+  },[warehouseCategory]);
+
 
   // 200%
   useEffect(()=>{
@@ -140,7 +146,8 @@ function WarehouseScreen() {
   // 200%
   function openWarehouse(item){
       setWarehouse_Modal(true);
-      const thisCategory = new Set(item.category.map(a=>a.id))
+      const thisCategory = new Set(item.category)
+      // const thisCategory = new Set(item.category.map(a=>a.id))
       const category = warehouseCategory.flatMap(a=>a.value).filter(b=>thisCategory.has(b.id))
       setCurrent({ ...item, category });
       setOldImage(item.imageId)
@@ -240,6 +247,7 @@ function WarehouseScreen() {
             
             {currentDisplay.map((item, index) => {
                 const { imageId, name, price, unit, barcode, category } = item;
+                const categoryName = categoryMap.get(category[0]) || ''
                 return <tr onClick={()=>{openWarehouse(item)}} key={index} style={styles.container9} >
                             <td style={styles.container7}>{index+1}.</td>
                             {/* <td style={styles.container7} >
@@ -252,7 +260,7 @@ function WarehouseScreen() {
                             <td style={styles.container7}>{name}</td>
                             <td style={styles.container7}>{price}</td>
                             <td style={styles.container7}>{unit}</td>
-                            <td style={styles.container7}>{category[0]?.name}</td>
+                            <td style={styles.container7}>{categoryName}</td>
                         </tr>
             })}
             </tbody>
