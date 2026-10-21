@@ -58,17 +58,25 @@ export const signin = createAsyncThunk(
         console.log("Error Code:"+err.code+"\nMessage:"+err.message)
         switch(err.code){
             case 'auth/invalid-email':
-                alert('อีเมลนี้ไม่พบในเครื่อข่ายอินเตอร์เน็ต')
+                alert('รูปแบบอีเมลไม่ถูกต้อง')
                 break;
             case 'auth/user-disabled':
                 alert('บัญชีผู้ใช้งานนี้ถูกระงับ')
                 break;
             case 'auth/user-not-found':
-                alert('ไม่พบบัญชีผู้ใช้งานในระบบ')
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+            case 'auth/invalid-login-credentials':
+                alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
                 break;
-            case 'auth/wrong-password': //เกิดเฉพาะเมื่ออะไรที่ใช้อีเมลล์ซ้ำ
-                alert('รหัสผ่านผิด กรุณาลองใหม่อีกครั้ง')
+            case 'auth/too-many-requests':
+                alert('ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่')
                 break;
+            case 'auth/network-request-failed':
+                alert('เชื่อมต่ออินเทอร์เน็ตไม่ได้ กรุณาตรวจสอบสัญญาณแล้วลองใหม่')
+                break;
+            default:
+                alert('เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'+(err?.code?' ('+err.code+')':''))
         }
     }
 

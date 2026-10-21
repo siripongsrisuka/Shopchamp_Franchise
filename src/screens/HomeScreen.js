@@ -7,7 +7,6 @@ import { colors, initialProfile } from "../configs";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate , Outlet, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { signin } from '../redux/authSlice';
-import { shopchampRestaurantAPI } from "../Utility/api";
 import { Modal_Splash } from "../modal";
 import { fetchNormalProfile } from "../redux/profileSlice";
 import { toastSuccess } from "../Utility/function";
@@ -67,23 +66,12 @@ function HomeScreen() {
   }
 
 
+  // เดิมถาม /users/checkEmailRegister ก่อน — เส้นนั้นตอบ {} ทุกกรณีแล้ว (scanfood_server 32dae97d)
+  // ⇒ ยิง signin ตรง ให้ Firebase Auth บอกเองว่าผิดตรงไหน
   const checkRegisterUser = async() => {
-      setLoading(true)
-    await shopchampRestaurantAPI.get('/users/checkEmailRegister/'+formData?.email.trim()).then(objRes=>{
-      const emailUserUid = objRes?.data?.uid;
-
-      if(emailUserUid){
-        dispatch(signin(formData))
-      }else{ // Register other app, but not registed vender
-        setLoading(false)
-        alert(t('home.alertUser'));
-      }  
-
-    }).catch(err=>{ // Not found user
-        setLoading(false)
-        alert(t('home.alertUser'));
-      console.log(err);
-    });
+    setLoading(true)
+    const result = await dispatch(signin(formData));
+    if(!result?.payload?.user?.uid) setLoading(false)
 }
 
 
