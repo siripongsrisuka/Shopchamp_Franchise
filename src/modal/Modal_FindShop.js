@@ -5,11 +5,12 @@ import {
   Modal,
   Form
 } from "react-bootstrap";
-import { colors, initialShop } from "../configs";
-import { db } from "../db/firestore";
+import { useSelector } from "react-redux";
+import { colors } from "../configs";
 import { FooterButton, OneButton } from "../components";
 import Modal_Loading from "./Modal_Loading";
-import { withoutStaffSecrets } from "../Utility/sanitize";
+import { franchiseBranchFind } from "../api/franchiseApi";
+import { apiErrorMessage } from "../api/posApi";
 
 const { softWhite, three, white } = colors;
 
@@ -28,6 +29,7 @@ function Modal_FindShop({
     const [shops, setShops] = useState([]);
     const { id:humanId } = current;
     const [loading, setLoading] = useState(false);
+    const { franchise:{ id:franchiseId } } = useSelector((state)=> state.franchise);
 
     function close(){
         setPhoneNumber('')
@@ -41,20 +43,15 @@ function Modal_FindShop({
     };
 
 
+    // DEV-0002 ก้อน 9f: `franchise.branchFind` (census 281) · ได้แค่ id name tel และสังกัดเดิม ⇒ รหัสพนักงานไม่ออกจาก server (FD-B2)
     async function findProfile(){
         setLoading(true);
         try {
-            const query = await db.collection('shop').where('tel','==',phoneNumber).get();
-            // FD-B2: ตัดรหัสพนักงานทิ้งก่อนเข้า state (Utility/sanitize.js)
-            const results = query.docs.map(doc=>withoutStaffSecrets({
-                ...initialShop,
-                ...doc.data(),
-                id:doc.id
-            }))
-            setShops(results)
+            const res = await franchiseBranchFind({ franchiseId, tel: phoneNumber.trim() });
+            setShops(res.shops || [])
             setPhoneNumber('')
         } catch (error) {
-            alert(error)
+            alert(apiErrorMessage(error, 'ค้นร้านไม่สำเร็จ'))
         } finally {
             setLoading(false);
         }
@@ -90,11 +87,17 @@ function Modal_FindShop({
         </div>
         <Row  >
             {shops.map((a)=>{
-                const { name, id } = a;
+                const { name, id, inThisFranchise, franchiseId:otherFranchiseId } = a;
                 let status = humanId===id
                 return <Col key={id} md='6' >
-                            <div onClick={()=>{setCurrent(prev=>({...prev,...a}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?'var(--sc-active)':'var(--sc-surface-2)'}} >
+                            <div data-testid={`find-shop-${id}`} onClick={()=>{setCurrent(prev=>({...prev,...a}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?'var(--sc-active)':'var(--sc-surface-2)'}} >
                                 <h4>{name}</h4>
+                                {inThisFranchise
+                                    ?<div style={styles.note} >เป็นสาขาของแฟรนไชส์นี้อยู่แล้ว</div>
+                                    :otherFranchiseId
+                                        ?<div style={styles.note} >อยู่แฟรนไชส์อื่น (ผูกแล้วจะถามยืนยันการย้าย)</div>
+                                        :null
+                                }
                             </div>
                         </Col>
             })}
@@ -106,6 +109,9 @@ function Modal_FindShop({
 };
 
 const styles = {
+    note : {
+        fontSize:13, color:'var(--sc-text-2)'
+    },
     container : {
         height:'65vh',overflowY:'auto', padding:0, margin:0
     },

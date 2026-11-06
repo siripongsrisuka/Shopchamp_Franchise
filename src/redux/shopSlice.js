@@ -1,33 +1,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { db } from "../db/firestore";
-import { formatTime } from '../Utility/function';
-import { withoutStaffSecrets } from '../Utility/sanitize';
+import { franchiseBranchList } from '../api/franchiseApi';
+import { apiErrorMessage } from '../api/posApi';
+import { toastError } from '../Utility/function';
 
 
 const initialState = {
     shops:[], // 
     modal_Shop:false,
+    shopsFranchiseId:'', // แฟรนไชส์ของรายการที่โหลดอยู่ (กันเห็นสาขาของแฟรนไชส์ก่อนหน้า DI-04)
 
 }
 
+// DEV-0002 ก้อน 9f: `franchise.branchList` (census 287) · คำตอบมีแค่ id name tel dateTime ⇒ ไม่มีรายชื่อ/รหัสพนักงานวิ่งผ่าน network (FD-B2)
 export const fetchShopFranchise = createAsyncThunk(
-  'shop/fetchShopFranchise', async (docId) => {
-    let data = []
-    const shopRef = db.collection('shop').where('franchiseId','==',docId)
-    await shopRef.get().then((docs)=>{
-      docs.forEach((doc)=>{
-        const { cutOff, dateTime, ...rest } = doc.data();
-        // FD-B2: ตัดรหัสพนักงานก่อนเข้า redux / localStorage
-        data.push(withoutStaffSecrets({
-          ...rest,
-          id:doc.id,
-          cutOff:formatTime(cutOff),
-          dateTime:formatTime(dateTime),
-        }))
-      })
-      
-    })
-    return data;
+  'shop/fetchShopFranchise', async (franchiseId, { rejectWithValue }) => {
+    try {
+      const res = await franchiseBranchList(franchiseId);
+      const shops = (res.branches || []).map((b) => ({ id: b.id, name: b.name, tel: b.tel, dateTime: b.dateTime || '' }));
+      return { shops, franchiseId };
+    } catch (error) {
+      const message = apiErrorMessage(error, 'โหลดรายการสาขาไม่สำเร็จ');
+      toastError(message);
+      return rejectWithValue({ message });
+    }
 });
 
 
@@ -48,7 +43,8 @@ export const shopSlice = createSlice({
       state.modal_Shop = true
     })
     builder.addCase(fetchShopFranchise.fulfilled, (state, action) => {
-      state.shops = action.payload
+      state.shops = action.payload.shops
+      state.shopsFranchiseId = action.payload.franchiseId
       state.modal_Shop = false
     })
     builder.addCase(fetchShopFranchise.rejected, state => {

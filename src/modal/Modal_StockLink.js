@@ -9,7 +9,7 @@ import {
 import Modal_FlatListTwoColumn from "./Modal_FlatListTwoColumn";
 import { useSelector } from "react-redux";
 import { DeleteButton, InputText, OneButton } from "../components";
-import { id } from "date-fns/locale";
+import { linkProblem } from "../api/franchiseApi";
 
 const initialStockLink = {
     shopId:'',
@@ -41,7 +41,7 @@ function Modal_StockLink({
     deleteStockLink
 }) {
     const { warehouse } = useSelector(state=>state.warehouse);
-    const { stocklinks = [] } = useSelector(state=>state.stockLink);
+    const { stockLinks: stocklinks = [] } = useSelector(state=>state.stockLink); // เดิมอ่าน `stocklinks` (ไม่มีช่องนี้) ⇒ สินค้าที่อยู่กลุ่มอื่นแล้วยังขึ้นให้เลือก (ST-087 ฝั่งจอ)
     const { stockGroupName = '', stockLink = [], id } = current;
     const [product_Modal, setProduct_Modal] = useState(false);
     const [availableStock, setAvailableStock] = useState([]); // available stock 
@@ -55,8 +55,9 @@ function Modal_StockLink({
         if(!stockGroupName) return alert('กรุณาใส่ชื่อกลุ่มผูกสต๊อก');
         if(stockLink.length===0) return alert('กรุณาเพิ่มรายการผูกสต๊อก');
         if(stockLink.some(a=>!a.linkMultiply || a.linkMultiply<=0)) return alert('กรุณาใส่จำนวนที่ผูกสต๊อกให้ถูกต้อง');   
-        if(stockLink.filter(a=>a.linkMultiply==1).length===0) return alert('กรุณาเลือกสินค้าที่ใช้เป็นอ้างอิง 1 รายการ');
-        if(stockLink.filter(a=>a.linkMultiply==1).length>1) return alert('กรุณาเลือกสินค้าที่ใช้เป็นอ้างอิงได้เพียง 1 รายการเท่านั้น');   
+        // DEV-0002 ก้อน 9f: กติกาเดียวกับ server `franchise.linkSave` (จำนวนเต็ม 1..100,000 ไม่ซ้ำ · ตัวคูณ 1 ตัวเดียว)
+        const problem = linkProblem(stockLink);
+        if(problem) return alert(problem);
         submit()
     };
 

@@ -11,8 +11,8 @@ import {
   Image,
   Collapse,
 } from "react-bootstrap";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet, NavLink } from 'react-router-dom';
-import { chainStoreFranchise, initialAdmin, initialAlert } from "../configs";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation, Outlet, NavLink } from 'react-router-dom';
+import { chainStoreFranchise, initialAlert } from "../configs";
 import { useSelector, useDispatch } from "react-redux";
 import '../styles/Restaurant.css'
 import { logout, updateCurrentFranchise } from "../redux/authSlice";
@@ -22,6 +22,8 @@ import { transformData } from "../Utility/function";
 import { fetchFranchise } from "../redux/franchiseSlice";
 import { RootImage } from "../components";
 import { fetchShopFranchise } from "../redux/shopSlice";
+import { hasRight } from "../api/franchiseApi";
+import { toastError } from "../Utility/function";
 
 // DEV-0002 สีของเปลือกเมนูมาจาก token --sc-* (src/styles/theme.css)
 
@@ -29,7 +31,8 @@ import { fetchShopFranchise } from "../redux/shopSlice";
 function FranchisorScreen() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { franchise : { imageId, type, id:franchiseId, humanRight }  } = useSelector((state)=> state.franchise);
+  const location = useLocation();
+  const { franchise : { imageId, type, id:franchiseId }, access, accessError, accessErrorCode } = useSelector((state)=> state.franchise);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [alert_Modal, setAlert_Modal] = useState(initialAlert);
   const { status, content, onClick, variant } = alert_Modal;
@@ -58,17 +61,37 @@ function FranchisorScreen() {
   
   
 
+  // DEV-0002 ก้อน 9f: เมนูตามสิทธิ์ที่ server ตัดสิน (`franchise.get` › access) · ทีมงาน = ครบ (เดิมเทียบ uid ที่ฝังในเว็บ)
+  //   access ยังไม่มา = เห็นแค่หัวข้อ (ไม่โชว์เมนูที่อาจไม่มีสิทธิ์)
   const { sideBar, listDisplay } = useMemo(()=>{
-    let sideBar = chainStoreFranchise
-    if(!initialAdmin.has(profileId)){
-      const { rights } = humanRight.find(a=>a.id===profileId) || { rights:[] }
-      sideBar = sideBar.filter(a=>a.label || rights.includes(a.id))
-    }
+    const sideBar = chainStoreFranchise.filter(a=>a.label || hasRight(access, a.id))
     return {
       sideBar,
       listDisplay:transformData(sideBar.filter(a=>a.label!=='ออกจากระบบ'))
     }
-  },[type,humanRight,profileId])
+  },[type,access])
+
+  // จอแรก (Dashboard สิทธิ์ 100) · ไม่มีสิทธิ์ = พาไปเมนูแรกที่มีสิทธิ์ (server `franchise.billList` ตอบ 403 · 9f §1)
+  const firstAllowed = useMemo(()=>sideBar.find(a=>a.to),[sideBar]);
+  const path = location.pathname.replace(/\/+$/,'').toLowerCase();
+  // ไม่ render จอลูกระหว่างรอพาไป (กัน Dashboard ยิง billList ก่อนย้ายจอ)
+  const redirectTo = access && (path === '/franchisor' || path === '/franchisor/dashboard') && !hasRight(access,'100') && firstAllowed
+    ? `/franchisor/${firstAllowed.to}` : '';
+  useEffect(()=>{
+    if(redirectTo) navigate(redirectTo, { replace:true });
+  },[redirectTo]);
+
+  // เปิดแฟรนไชส์ไม่ผ่าน (ไม่ใช่สมาชิก/ถูกปิด/ยังไม่เปิดใช้งาน) = กลับรายการ
+  useEffect(()=>{
+    if(accessError){
+      toastError(accessError);
+      if(accessErrorCode === 'not_franchise_member' || accessErrorCode === 'franchise_not_found'){
+        backToList();
+      }
+    }
+  },[accessError, accessErrorCode]);
+
+  const noMenu = !!access && !firstAllowed;
 
 
 
@@ -146,7 +169,7 @@ function FranchisorScreen() {
                   }
                   
                   <div style={styles.container5}>
-                      <Outlet />
+                      {noMenu ? <NoMenu/> : access && !redirectTo ? <Outlet /> : accessError ? <NoMenu text={accessError}/> : null}
                   </div> 
                 </div>
                 :<div>
@@ -195,7 +218,7 @@ function FranchisorScreen() {
               </div> 
               <div style={{width:windowWidth < 576 || short ? '100%' : 'calc(100% - 212px)', marginLeft: windowWidth < 576 ? 0 : '210px',backgroundColor:'var(--sc-bg)', minHeight:'100vh'}}>
                 <div style={styles.outletPad}>
-                <Outlet />
+                {noMenu ? <NoMenu/> : access && !redirectTo ? <Outlet /> : accessError ? <NoMenu text={accessError}/> : null}
                 </div>
             </div>
               </div>
@@ -205,7 +228,14 @@ function FranchisorScreen() {
   );
 };
 
+function NoMenu({ text = 'บัญชีนี้ยังไม่มีสิทธิ์ใช้งานเมนูใดของแฟรนไชส์นี้ ติดต่อผู้ดูแลแฟรนไชส์เพื่อขอสิทธิ์' }){
+  return <div data-testid="franchisor-no-menu" style={styles.noMenu} >{text}</div>
+}
+
 const styles = {
+  noMenu : {
+    padding:'24px 8px', color:'var(--sc-text-2)', fontSize:15
+  },
   root : {
     backgroundColor:'var(--sc-bg)'
   },

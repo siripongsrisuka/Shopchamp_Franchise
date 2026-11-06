@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { Modal_Franchise, Modal_Loading } from "../modal";
 import { useSelector, useDispatch } from "react-redux";
 import { updateNormalFieldFranchise } from "../redux/franchiseSlice";
-import { db, prepareFirebaseImage } from "../db/firestore";
+import { prepareFirebaseImage } from "../db/firestore";
+import { franchiseProfileUpdate } from "../api/franchiseApi";
+import { apiErrorMessage } from "../api/posApi";
 import { colors } from "../configs";
 import { OneButton, RootImage } from "../components";
-import { toastSuccess } from "../Utility/function";
+import { toastError, toastSuccess } from "../Utility/function";
 
 const { white } = colors;
 
@@ -18,21 +20,27 @@ function ProfileScreen() {
     const [franchise_Modal, setFranchise_Modal] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // DEV-0002 ก้อน 9f: `franchise.profileUpdate` (census 262) · ส่งเฉพาะช่องที่เปลี่ยนจากที่โหลดมา (PR-07 เดิมเขียน 2 ช่องจากค่าใน localStorage)
+    //   โลโก้ยังอัปจากเบราว์เซอร์ขึ้น Storage ก่อน แล้วส่ง URL (เส้นใหม่รับแค่ URL)
     async function submit(){
         setFranchise_Modal(false);
         setLoading(true);
-        let image = imageId
-        if (imageId && !imageId.startsWith('https')) {
-          image = await prepareFirebaseImage(imageId,'/franchise/',franchiseId)
-        }
         try {
-            const updatedField = { name, imageId:image };
-            const franchiseRef = db.collection('franchise').doc(franchiseId);
-            await franchiseRef.update(updatedField);
+            let image = imageId || ''
+            if (image && !image.startsWith('https')) {
+              image = await prepareFirebaseImage(image,'/franchise/',franchiseId)
+            }
+            const body = { franchiseId };
+            if ((name || '').trim() !== (franchise.name || '')) body.name = (name || '').trim();
+            if (image !== (franchise.imageId || '')) body.imageId = image;
+            if (Object.keys(body).length === 1) { toastSuccess('ไม่มีอะไรเปลี่ยน'); return; }
+            await franchiseProfileUpdate(body);
+            const updatedField = { ...(body.name !== undefined ? { name: body.name } : {}), ...(body.imageId !== undefined ? { imageId: body.imageId } : {}) };
             dispatch(updateNormalFieldFranchise(updatedField));
+            setCurrent(prev=>({ ...prev, ...updatedField }));
             toastSuccess('อัปเดตโปรไฟล์ สำเร็จ')
         } catch (error) {
-            alert(error)
+            toastError(apiErrorMessage(error, 'อัปเดตโปรไฟล์ไม่สำเร็จ'))
         } finally {
             setLoading(false);
         }

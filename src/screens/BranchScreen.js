@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Table } from "react-bootstrap";
 import { Modal_FindShop, Modal_Loading } from "../modal";
 import { useSelector, useDispatch } from "react-redux";
-import { addNormalShop } from "../redux/shopSlice";
-import { formatTime, goToTop, searchFilterFunction, toastSuccess } from "../Utility/function";
-import { db } from "../db/firestore";
+import { fetchShopFranchise } from "../redux/shopSlice";
+import { formatTime, goToTop, searchFilterFunction, toastError, toastSuccess } from "../Utility/function";
+import { franchiseBranchAttach } from "../api/franchiseApi";
+import { apiErrorMessage, serverErrorCode } from "../api/posApi";
 import { stringDateTime3 } from "../Utility/dateTime";
 import { OneButton, SearchControl } from "../components";
 import TablePagination from '@mui/material/TablePagination';
-import { initialAdmin } from "../configs";
-import { withoutStaffSecrets } from "../Utility/sanitize";
 
 function BranchScreen() {
     const dispatch = useDispatch();
-    const { franchise : { id:franchiseId } } = useSelector((state)=> state.franchise);
+    const { franchise : { id:franchiseId }, access } = useSelector((state)=> state.franchise);
     const { shops } = useSelector((state)=> state.shop);
-    const { profile:{ id:profileId } } = useSelector((state)=> state.profile);
+    // ปุ่มผูกสาขา = ทีมงานเท่านั้น ตามเดิม · ทีมงานหรือไม่ server ตัดสิน (`franchise.get` › access.byAdmin) แทนชุด uid ในเว็บ
+    const isAdmin = !!(access && access.byAdmin);
 
     const [newShop_Modal, setNewShop_Modal] = useState(false);
     const [thisProfile, setThisProfile] = useState({ name:'', id:'', imageId:'', tel:''});
@@ -49,29 +49,25 @@ function BranchScreen() {
     },[shops,search,page,rowsPerPage]);
 
 
-    async function handleChangeToFranchise(item){
+    // DEV-0002 ก้อน 9f: `franchise.branchAttach` (census 268) · เขียน shop.franchiseId ช่องเดียวที่ server
+    //   ร้านอยู่แฟรนไชส์อื่น = 409 ไม่ย้ายเงียบ (DI-13) ⇒ ถามก่อน แล้วส่ง moveFromFranchiseId ตรงค่าปัจจุบัน
+    async function handleChangeToFranchise(item, moveFromFranchiseId){
         setNewShop_Modal(false);
         setLoading(true);
         try {
-            const updatedField = {
-                franchiseId:franchiseId,
-            };
-            const shopData = await db.runTransaction(async (transaction) => {
-                const shopRef = db.collection('shop').doc(item.id);
-                const shopDoc = await transaction.get(shopRef);
-                const shopData = shopDoc.data();
-                transaction.update(shopRef, updatedField);
-                // FD-B2: doc ร้านที่อ่านใน transaction ตัดรหัสพนักงานก่อนเข้า redux
-                return withoutStaffSecrets({
-                    ...shopData,
-                    ...updatedField,
-                    id:item.id,
-                });
-            });
-            dispatch(addNormalShop(shopData));
-            toastSuccess('เปลี่ยนโปรไฟล์เป็นสาขา สำเร็จ');
+            const body = { franchiseId, shopId: item.id };
+            if (moveFromFranchiseId) body.moveFromFranchiseId = moveFromFranchiseId;
+            const res = await franchiseBranchAttach(body);
+            dispatch(fetchShopFranchise(franchiseId));
+            toastSuccess(res.unchanged ? 'ร้านนี้เป็นสาขาอยู่แล้ว' : 'เปลี่ยนโปรไฟล์เป็นสาขา สำเร็จ');
         } catch (error) {
-            alert(error);
+            const env = error && error.response && error.response.data;
+            const current = env && typeof env.currentFranchiseId === 'string' ? env.currentFranchiseId : '';
+            if (serverErrorCode(error) === 'shop_in_other_franchise' && current && !moveFromFranchiseId
+                && window.confirm(`ร้าน ${item.name || ''} เป็นสาขาของแฟรนไชส์อื่นอยู่ ต้องการย้ายมาแฟรนไชส์นี้ไหม`)) {
+                return await handleChangeToFranchise(item, current);
+            }
+            toastError(apiErrorMessage(error, 'ผูกสาขาไม่สำเร็จ'));
         } finally {
             setLoading(false);
         }
@@ -90,7 +86,7 @@ function BranchScreen() {
             submit={handleChangeToFranchise}
         />
         <h1>สาขาทั้งหมด</h1>
-        {initialAdmin.has(profileId) && <OneButton {...{ text:'+ เพิ่มสาขาใหม่', submit:()=>{setNewShop_Modal(true)}, variant:'warning' }}/>}
+        {isAdmin && <OneButton {...{ text:'+ เพิ่มสาขาใหม่', submit:()=>{setNewShop_Modal(true)}, variant:'warning' }}/>}
         <br/><br/>
         <SearchControl {...{ search, setSearch, placeholder:'ค้นหาด้วยชื่อสาขา' }} />
         <br/>

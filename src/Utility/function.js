@@ -7,6 +7,10 @@ export function toastSuccess(text='🟢 Updated successful!'){
   toast.success(text);
 };
 
+export function toastError(text='ทำรายการไม่สำเร็จ'){
+  toast.error(text);
+};
+
 
 
   export function includesOutInArray(arr,propertise,value){

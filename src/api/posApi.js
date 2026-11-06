@@ -11,10 +11,9 @@ import { apiTarget } from '../configs/apiTarget';
 
 export const API_TIMEOUT_MS = 60000;
 
-// path ตรงกับบรรทัด `# route:` ของสัญญา · function อยู่ใน segment แรก (`pos` / `pos_heavy`)
-export const ENDPOINTS = {
-  profileManage: '/pos/profile/manage',
-};
+// path ตรงกับบรรทัด `# route:` ของสัญญา · อยู่ที่ endpoints.js
+export { ENDPOINTS } from './endpoints';
+
 
 export const NOT_DEPLOYED_MESSAGE = 'ยังไม่เปิดใช้งาน · ระบบส่วนนี้กำลังปรับปรุง กรุณาลองใหม่ภายหลัง';
 

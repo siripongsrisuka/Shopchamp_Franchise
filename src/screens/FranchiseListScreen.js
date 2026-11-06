@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Table
 } from "react-bootstrap";
 import { useSelector, useDispatch, batch } from "react-redux";
-import { colors, initialAdmin, initialAlert, initialFranchise } from "../configs";
+import { colors, initialAlert, initialFranchise } from "../configs";
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { Modal_Alert, Modal_OneInput, Modal_Splash } from "../modal";
 import { updateCurrentFranchise } from "../redux/authSlice";
-import { db } from "../db/firestore";
 import { fetchNormalFranchise } from "../redux/franchiseSlice";
+import { franchiseList, franchiseCreate, franchiseGet } from "../api/franchiseApi";
+import { apiErrorMessage, newRequestId } from "../api/posApi";
+import { clearBill } from "../redux/billSlice";
+import { clearWarehouse } from "../redux/warehouseSlice";
 import { OneButton, SearchControl } from "../components";
-import { formatTime, searchFilterFunction } from "../Utility/function";
+import { searchFilterFunction, toastError } from "../Utility/function";
 import { normalSort } from "../Utility/sort";
 import { stringDateTimeReceipt } from "../Utility/dateTime";
 import { logout } from "../redux/authSlice";
@@ -34,21 +37,10 @@ function FranchiseListScreen() {
     const { status, content, onClick, variant } = alert_Modal;
 
  
-    const IsAdmin = initialAdmin.has(profileId);
+    // DEV-0002 ก้อน 9f: ทีมงานหรือไม่ = server ตัดสิน (`franchise.list` คืน byAdmin) · ไม่ใช้ชุด uid ที่ฝังในเว็บแล้ว
+    const [createUUID, setCreateUUID] = useState(newRequestId()); // รหัสกันกดซ้ำของการสร้าง 1 ครั้ง (FL-40)
     useEffect(()=>{
-      batch(()=>{
-        if(IsAdmin){ // ถ้าเป็น admin เข้าถึงทุก franchise
-          fetchAdminPort()
-        } else {
-          fetchNormalPort()
-        }
-        // dispatch(clearBill())
-        // dispatch(clearBom())
-        // dispatch(clearFranchise())
-        // dispatch(clearProduct())
-        // dispatch(clearShop())
-      })
-
+      fetchPorts()
     },[]);
 
     useEffect(()=>{
@@ -59,132 +51,81 @@ function FranchiseListScreen() {
         setDisplay(arr)
     },[search,ports])
 
-    async function fetchNormalPort() {
+    // census 272 273: `franchise.list` (สมาชิก = ของฉัน · ทีมงาน = ทั้งหมด)
+    async function fetchPorts() {
       try {
-        const snapshot = await db.collection('franchise')
-          .where('humanResource', 'array-contains', profileId)
-          .get();
-    
-        if (snapshot.docs.length===0) {
+        const res = await franchiseList();
+        const arr = (res.franchises || []).map(({ timestamp, ...rest })=>({
+          ...rest,
+          timestamp: timestamp ? new Date(timestamp) : null,
+        }));
+        if (arr.length===0) {
           setPorts([]);
           setFranchise_Modal(true);
           return;
         }
-    
-        const arr = snapshot.docs.map(doc=>{
-          const { timestamp, ...rest } = {...initialFranchise,...doc.data()}
-          return {
-            timestamp:timestamp.toDate(),
-            ...rest,
-            id:doc.id
-          }
-        });
-    
         setPorts(normalSort('timestamp',arr));
-
       } catch (error) {
-        console.error('Error fetching data:', error);
+        toastError(apiErrorMessage(error, 'โหลดรายการแฟรนไชส์ไม่สำเร็จ'));
       } finally {
         setLoading(false)
       }
     }
-    async function fetchAdminPort(){
-        try {
-            const snapshot = await db.collection('franchise')
-            // .where('humanResource', 'array-contains', profileId)
-            .get();
-        
-            if (snapshot.docs.length===0) {
-            setPorts([]);
-            setFranchise_Modal(true);
-            return;
-            }
-        
-            const arr = snapshot.docs.map(doc=>{
-            const { timestamp, ...rest } = {...initialFranchise,...doc.data()}
-            return {
-                timestamp:timestamp.toDate(),
-                ...rest,
-                id:doc.id
-            }
-            });
-        
-            setPorts(normalSort('timestamp',arr));
 
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setLoading(false)
-        }
-    }
-
-
-
-
+    // census 274: เปิดแฟรนไชส์ = `franchise.get` ทุกคน (รายการมีแค่ชื่อ/รูป ไม่มี doc ทั้งก้อน)
     async function backToShop(payload){
         setLoading(true)
-
         try {
-          let franchiseData = payload;
-          if(IsAdmin){
-            const franchiseDoc = await db.collection('franchise').doc(payload.id).get();
-            franchiseData = {
-              ...franchiseDoc.data(),
-              id:payload.id,
-              timestamp:formatTime(franchiseDoc.data().timestamp)
-            }
-          }
-          const franchiseId = payload.id;
-  
-  
+          const res = await franchiseGet(payload.id);
+          const franchiseData = { ...initialFranchise, ...res.franchise, id: payload.id };
           batch(()=>{
+            if (currentFranchiseId !== payload.id) {
+              dispatch(clearBill());
+              dispatch(clearWarehouse());
+            }
             dispatch(fetchNormalFranchise(franchiseData));
-            dispatch(updateCurrentFranchise(franchiseId));
+            dispatch(updateCurrentFranchise(payload.id));
           })
           navigate('/franchisor')
         } catch (error) {
-          alert(error)
+          dispatch(updateCurrentFranchise(''));
+          toastError(apiErrorMessage(error, 'เปิดแฟรนไชส์ไม่สำเร็จ'))
         } finally {
           setLoading(false)
         }
-
-          
       }
 
-  
-
-
+  // census 275: `franchise.create` · ผู้สร้างเป็นสมาชิกสิทธิ์ครบ (DI-45) · ทีมงานสร้าง = ยังไม่มีสมาชิก ⇒ พาไปจอกำหนดสิทธิ์ (คำถามข้อ 7)
   async function submit(){
-        if(!franchiseName){
+        const name = franchiseName.trim();
+        if(!name){
         return alert('กรุณาตั้งชื่อแฟรนไชส์')
         };
-        const timestamp = new Date();
         setFranchise_Modal(false);
         setLoading(true);
-
-        const payload = {
-            ...initialFranchise,
-            timestamp,
-            humanResource:[],
-            humanRight:[],
-            name:franchiseName
-        };
-
         try {
-            const franchiseRef = db.collection('franchise').doc();
-            await franchiseRef.set(payload);
-            
-            dispatch(fetchNormalFranchise({...payload,id:franchiseRef.id}));
-            dispatch(updateCurrentFranchise(franchiseRef.id));
-            navigate('/franchisor');
+            const res = await franchiseCreate({ franchiseUUID: createUUID, name });
+            setCreateUUID(newRequestId());
+            setFranchiseName('');
+            batch(()=>{
+              dispatch(clearBill());
+              dispatch(clearWarehouse());
+              dispatch(fetchNormalFranchise({ ...initialFranchise, name, id: res.franchiseId }));
+              dispatch(updateCurrentFranchise(res.franchiseId));
+            })
+            navigate(res.byAdmin ? '/franchisor/staff' : '/franchisor');
         } catch (error) {
-            
+            toastError(apiErrorMessage(error, 'สร้างแฟรนไชส์ไม่สำเร็จ'));
         } finally {
             setLoading(false);
         }
   };
 
+  // เปิดค้างแฟรนไชส์ไหนไว้ = เข้าให้เลย · ครั้งเดียวต่อการโหลดรายการ (เดิมยิงซ้ำเมื่อ currentFranchiseId เปลี่ยนหลังกดเข้า)
+  const autoEntered = useRef(false);
   useEffect(()=>{ // ถ้ามี port เดียว สามารถ ข้าม shot ไปเลย
+    if(autoEntered.current || ports.length===0) return;
+    autoEntered.current = true;
     const findPort = ports.find(a=>a.id===currentFranchiseId)
     if(findPort){
       backToShop(findPort)
@@ -254,7 +195,7 @@ function FranchiseListScreen() {
                   return <tr  key={id} >
                               <td style={styles.container5} >{index+1}.</td>
                               <td >{name}</td>
-                              <td tyle={styles.container5} >{stringDateTimeReceipt(timestamp)}</td>
+                              <td tyle={styles.container5} >{timestamp ? stringDateTimeReceipt(timestamp) : '-'}</td>
                               <td style={styles.container5} >
                                 <OneButton {...{ text:'เข้าสู่ระบบ', variant:'success', submit:()=>{backToShop(item)} }} />
                               </td>

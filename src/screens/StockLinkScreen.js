@@ -5,8 +5,9 @@ import {
 } from "react-bootstrap";
 import { addNormalStockLink, deleteNormalLink, fetchStockLink, updateNormalLink } from "../redux/stockLinkSlice";
 import { OneButton, SearchControl } from '../components'
-import { db } from "../db/firestore";
-import { searchFilterFunction, toastSuccess } from "../Utility/function";
+import { searchFilterFunction, toastError, toastSuccess } from "../Utility/function";
+import { franchiseLinkSave, franchiseLinkDelete, linkSaveBody } from "../api/franchiseApi";
+import { apiErrorMessage, newRequestId } from "../api/posApi";
 import { Modal_Loading, Modal_StockLink } from "../modal";
 import { fetchWarehouse } from "../redux/warehouseSlice";
 
@@ -36,11 +37,12 @@ function StockLinkScreen() {
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [currentDisplay, setCurrentDisplay] = useState([]);
+    const [linkUUID, setLinkUUID] = useState(newRequestId()); // รหัสกันกดซ้ำของกลุ่มใหม่ 1 กลุ่ม (SL-42)
 
     useEffect(()=>{
         let filtered = stockLinks;
         if(search){
-            filtered = searchFilterFunction(search,stockLinks,'stockGroupName');
+            filtered = searchFilterFunction(stockLinks,search,'stockGroupName'); // เดิมสลับลำดับ argument (พิมพ์ค้นแล้วจอพัง)
         }
         setCurrentDisplay(filtered);
     },[search, stockLinks]);
@@ -56,46 +58,40 @@ function StockLinkScreen() {
         setStockLink_Modal(true);
     };
 
+    // DEV-0002 ก้อน 9f: `franchise.linkSave` (census 263 264) · `linkDelete` (265)
+    //   ชื่อ/หน่วย/บาร์โค้ด/รูปของสมาชิก server คัดจากคลังในฐาน (ST-139) ⇒ จอใช้ stockLink ที่ได้กลับมา
+    //   เดิมสร้างแล้วใส่ franchiseId ลงรายการแทนกลุ่ม (ST-049) ⇒ ตอนนี้ใส่กลุ่มที่ server ตอบ
     async function submitStockLink(){
-        // dispatch action to add or update stock link
         setStockLink_Modal(false);
-
         setLoading(true);
-        const { id } = current;
         try {
-               if(id){
-                  const stockLinkRef = db.collection('stockLink').doc(id);
-                  await stockLinkRef.update({ ...current });
-                  dispatch(updateNormalLink(current));
-                  toastSuccess('อัพเดทรายการผูกสต๊อกเรียบร้อย');
-                    // update existing stock link
-                    // dispatch(updateStockLink(current));
-                }else{
-                  const stockLinkRef = db.collection('stockLink').doc();
-                  await stockLinkRef.set({ ...current, id:stockLinkRef.id, franchiseId });
-                  dispatch(addNormalStockLink(franchiseId));
-                  toastSuccess('เพิ่มรายการผูกสต๊อกเรียบร้อย');
-                    // add new stock link
-                    // dispatch(addStockLink(current));
-                } 
+            const body = linkSaveBody({ franchiseId, current, linkUUID });
+            const res = await franchiseLinkSave(body);
+            const row = { ...current, id: res.linkId, stockGroupName: body.stockGroupName, stockLink: res.stockLink || current.stockLink, upgrade: true };
+            if (body.op === 'update') {
+              dispatch(updateNormalLink(row));
+              toastSuccess('อัพเดทรายการผูกสต๊อกเรียบร้อย');
+            } else {
+              dispatch(addNormalStockLink(row));
+              setLinkUUID(newRequestId());
+              toastSuccess('เพิ่มรายการผูกสต๊อกเรียบร้อย');
+            }
         } catch (error) {
-          alert(error)
+          toastError(apiErrorMessage(error, 'บันทึกกลุ่มผูกสต๊อกไม่สำเร็จ'))
         } finally{
           setLoading(false);
         }
     };
 
     async function deleteStockLink(id){
-        // dispatch action to delete stock link
         setStockLink_Modal(false);
         setLoading(true);
         try {
-          const stockLinkRef = db.collection('stockLink').doc(id);
-          await stockLinkRef.delete();
+          await franchiseLinkDelete({ franchiseId, linkId: id });
           dispatch(deleteNormalLink(id));
           toastSuccess('ลบรายการผูกสต๊อกเรียบร้อย');
         } catch (error) {
-          alert(error)
+          toastError(apiErrorMessage(error, 'ลบกลุ่มผูกสต๊อกไม่สำเร็จ'))
         } finally{
           setLoading(false);    
         }

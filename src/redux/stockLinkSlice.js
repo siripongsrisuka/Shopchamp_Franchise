@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { formatTime } from '../Utility/function';
+import { formatTime, toastError } from '../Utility/function';
 import { reverseSort } from '../Utility/sort';
-import { db } from '../db/firestore';
+import { franchiseLinkList } from '../api/franchiseApi';
+import { apiErrorMessage } from '../api/posApi';
 
 const initialState = {
     stockLinks:[],
@@ -11,60 +12,22 @@ const initialState = {
 
 }
 
-
+// DEV-0002 ก้อน 9f: `franchise.linkList` (census 283) · ตัวคูณเป็นตัวเลข เรียงจาก server (SL-27)
+//   thunk ลบ/เพิ่ม/แก้ตรงเดิม 3 ตัว (census 284 285 286) ไม่มีจอเรียก ⇒ เอาออก · จอเขียนผ่าน `franchise.linkSave` `linkDelete`
 export const fetchStockLink = createAsyncThunk(
   'stockLink/fetchStockLink',
-  async (franchiseId) => {
-    let arrObject = []
-    await db.collection('stockLink').where("franchiseId", "==", franchiseId).get().then((qsnapshot)=>{
-      if (qsnapshot.docs.length > 0) {
-        qsnapshot.forEach(doc=>{
-          const { timestamp, stockLink, ...rest  } = doc.data();
-          arrObject.push({
-            ...rest,
-            id:doc.id,
-            timestamp:formatTime(timestamp),
-            stockLink:reverseSort('linkMultiply',stockLink)
-          })
-        })
-      }else{
-        console.log('item-does-not-exist');
-      }
-    })
-    return reverseSort('timestamp',arrObject);
+  async (franchiseId, { rejectWithValue }) => {
+    try {
+      const res = await franchiseLinkList(franchiseId);
+      const rows = (res.links || []).map(({ timestamp, ...rest }) => ({ ...rest, timestamp: formatTime(timestamp) }));
+      return reverseSort('timestamp', rows);
+    } catch (error) {
+      const message = apiErrorMessage(error, 'โหลดกลุ่มผูกสต๊อกไม่สำเร็จ');
+      toastError(message);
+      return rejectWithValue({ message });
+    }
   }
 );
-
-export const deleteStockLink = createAsyncThunk(
-    'stockLink/deleteStockLink',
-    async (token) => {
-      await db.collection('stockLink').doc(token).delete()
-      return token;
-    }
-);
-
-// add product
-export const addStockLinkToFireBase = createAsyncThunk(
-    'stock/addStockLinkToFireBase', 
-    async (product) => {
-      let newProduct = {}
-      await db.collection('stockLink').add(product).then((doc)=>{
-          newProduct = {id: doc.id, ...product}
-      })
-    return newProduct;
-});
-
-
-export const updateFieldLink = createAsyncThunk(
-  'shop/updateFieldLink', async ({doc,field}) => {
-  await db.collection('stockLink').doc(doc).update(field)
-  return field;
-});
-
-
-
-
-
 
 export const stockLink = createSlice({
   name: 'stockLink',
@@ -72,11 +35,11 @@ export const stockLink = createSlice({
   reducers: {
     updateNormalLink: (state, action) => {
       let item = state.stockLinks.find(a=>a.id === action.payload.id)
-      Object.assign(item,action.payload)
+      if (item) Object.assign(item,action.payload)
     },
     deleteNormalLink: (state, action) => {
       const index = state.stockLinks.findIndex(a => a.id === action.payload);
-      state.stockLinks.splice(index, 1); // Directly remove the item (Immer handles immutability)
+      if (index >= 0) state.stockLinks.splice(index, 1); // Directly remove the item (Immer handles immutability)
     },
     updateStockDisplay: (state, action) => {
       const updatedIds = action.payload;
@@ -111,7 +74,7 @@ export const stockLink = createSlice({
         item.linkMultiply = qty
     },
     addNormalStockLink: (state, action) => {
-      state.stockLinks = [...state.stockLinks,action.payload]
+      state.stockLinks = [...state.stockLinks.filter(a=>a.id!==action.payload.id),action.payload]
       state.currentProducts = []
       state.refProduct = {}
   },
@@ -126,42 +89,6 @@ export const stockLink = createSlice({
     })
     builder.addCase(fetchStockLink.rejected, state => {
       state.modal_StockLinks = false
-    })
-    builder.addCase(deleteStockLink.pending, state => {
-        state.modal_StockLinks = true
-    })
-    builder.addCase(deleteStockLink.fulfilled, (state, action) => {
-        state.stockLinks = state.stockLinks.filter(a=>a.id!==action.payload)
-        state.modal_StockLinks = false
-    })
-    builder.addCase(deleteStockLink.rejected, state => {
-        state.modal_StockLinks = false
-    })
-    builder.addCase(addStockLinkToFireBase.pending, state => {
-        state.modal_StockLinks = true
-    })
-    builder.addCase(addStockLinkToFireBase.fulfilled, (state, action) => {
-        state.stockLinks = [...state.stockLinks,action.payload]
-        state.currentProducts = []
-        state.refProduct = {}
-        state.modal_StockLinks = false
-    })
-    builder.addCase(addStockLinkToFireBase.rejected, state => {
-        state.modal_StockLinks = false
-    })
-    builder.addCase(updateFieldLink.pending, state => {
-      state.modal_StockLinks = true
-    })
-    builder.addCase(updateFieldLink.fulfilled, (state, action) => {
-        state.stockLinks = state.stockLinks.map(a=>{
-          return a.id===action.payload.id
-              ?action.payload
-              :a
-        })
-        state.modal_StockLinks = false
-    })
-    builder.addCase(updateFieldLink.rejected, state => {
-        state.modal_StockLinks = false
     })
   }
 })

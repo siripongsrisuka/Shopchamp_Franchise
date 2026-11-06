@@ -4,23 +4,24 @@ import {
 } from "react-bootstrap";
 import { initialProduct, initialWarehouseItem } from "../configs";
 import { useSelector, useDispatch } from "react-redux";
-import { compareArrays, formatCurrency, goToTop, searchMultiFunction, summary, toastSuccess, totalField } from "../Utility/function";
+import { compareArrays, formatCurrency, goToTop, searchMultiFunction, summary, toastError, toastSuccess, totalField } from "../Utility/function";
 import Modal_Loading from "../modal/Modal_Loading";
 import '../styles/CartScreen.css'
 import "react-datepicker/dist/react-datepicker.css";
 import TablePagination from '@mui/material/TablePagination';
 import { Modal_Warehouse } from "../modal";
-import { db, prepareFirebaseImage2, webImageDelete } from "../db/firestore";
+import { prepareFirebaseImage2, webImageDelete } from "../db/firestore";
+import { franchiseWarehouseSave, franchiseWarehouseDelete, warehouseSaveBody, warehouseFieldsOf } from "../api/franchiseApi";
+import { apiErrorMessage, newRequestId } from "../api/posApi";
 import { CategoryControl, OneButton, RootImage, SearchAndDownload } from "../components";
 import { stringYMDHMS3 } from "../Utility/dateTime";
 import * as XLSX from 'xlsx';
 import { addNormalWarehouse, deleteNormalWarehouse, fetchWarehouse, updateNormalWarehouse } from "../redux/warehouseSlice";
-import firebase from 'firebase/app';
 
 function WarehouseScreen() {
   const dispatch = useDispatch();
   const { franchise : { id:franchiseId, warehouseCategory }, modal_Franchise } = useSelector((state)=> state.franchise);
-  const { warehouse } = useSelector(state=>state.warehouse);
+  const { warehouse, warehouseFranchiseId } = useSelector(state=>state.warehouse);
   const [currentDisplay, setCurrentDisplay] = useState([]) // จำนวนที่แสดงในหนึ่งหน้า
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
@@ -28,6 +29,8 @@ function WarehouseScreen() {
   const [current, setCurrent] = useState(initialWarehouseItem);
   const [loading, setLoading] = useState(false);
   const [oldImage, setOldImage] = useState('');
+  const [before, setBefore] = useState(null); // สินค้าตามที่โหลดมาตอนเปิดแก้ (ส่งเฉพาะช่องที่ต่าง · WH-11)
+  const [itemUUID, setItemUUID] = useState(newRequestId()); // รหัสกันกดซ้ำของสินค้าใหม่ 1 ตัว (WH-47)
   const [categorySetting, setCategorySetting] = useState([]);
   const [search, setSearch] = useState('');
   const [resultLength, setResultLength] = useState(0);
@@ -44,7 +47,7 @@ function WarehouseScreen() {
   };
 
   useEffect(()=>{
-      if(warehouse.length===0){
+      if(warehouse.length===0 || warehouseFranchiseId !== franchiseId){
         dispatch(fetchWarehouse(franchiseId))
       }
   },[]);
@@ -80,47 +83,44 @@ function WarehouseScreen() {
       setCurrentDisplay(fData)
   },[page,rowsPerPage,warehouse,categorySetting,search])
 
-  // 200%
+  // DEV-0002 ก้อน 9f: `franchise.warehouseSave` (census 269 270) · `warehouseDelete` (271)
+  //   รูปยังอัปจากเบราว์เซอร์ขึ้น Storage ก่อน · ลบรูปเก่าหลัง server บันทึกสำเร็จเท่านั้น (WH-38 WH-40 เดิมลบก่อนบันทึก)
   async function submit(){
     setWarehouse_Modal(false)
-    const { imageId, id } = current;
     setLoading(true);
-    const payload = {
-      ...current
-    };
-
-    //1. check รูปภาพ
-    if (imageId && !imageId.startsWith('https')) {
-      const imageUrl = await prepareFirebaseImage2(imageId,'/franchise/',franchiseId)
-      payload.imageId = imageUrl
-      if(oldImage){
-        await webImageDelete(oldImage)
-      }
-    }
+    const form = { ...current };
+    let uploaded = '';
     try {
-        if(id){
-          const warehouseRef = db.collection('warehouseItem').doc(id);
-          await warehouseRef.update(payload);
-          dispatch(updateNormalWarehouse(payload));
-          toastSuccess('อัปเดตรายการสินค้า สำเร็จ');
-        } else {
-          payload.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-          payload.franchiseId = franchiseId;
-          payload.stock = 0;
-          const warehouseRef = db.collection('warehouseItem').doc();
-          await warehouseRef.set(payload);
-          dispatch(addNormalWarehouse({
-            ...payload,
-            id:warehouseRef.id
-          }))
-          toastSuccess('สร้างรายการสินค้า สำเร็จ');
+      if (form.imageId && !form.imageId.startsWith('https')) {
+        uploaded = await prepareFirebaseImage2(form.imageId,'/franchise/',franchiseId)
+        form.imageId = uploaded
+      }
+      const body = warehouseSaveBody({ franchiseId, form, before, itemUUID });
+      if (!body) {
+        toastSuccess('ไม่มีอะไรเปลี่ยน');
+        return;
+      }
+      const res = await franchiseWarehouseSave(body);
+      const fields = warehouseFieldsOf(form);
+      if (body.op === 'update') {
+        dispatch(updateNormalWarehouse({ id: before.id, updatedField: fields }));
+        toastSuccess('อัปเดตรายการสินค้า สำเร็จ');
+      } else {
+        if (!res.duplicate || !warehouse.some(a=>a.id===res.itemId)) {
+          dispatch(addNormalWarehouse({ ...initialWarehouseItem, ...fields, id: res.itemId, franchiseId, timestamp: new Date() }))
         }
-
+        setItemUUID(newRequestId());
+        toastSuccess('สร้างรายการสินค้า สำเร็จ');
+      }
+      if (uploaded && oldImage && oldImage !== uploaded) {
+        webImageDelete(oldImage).catch(()=>{});
+      }
     } catch (error) {
-      alert(error)
+      toastError(apiErrorMessage(error, 'บันทึกรายการสินค้าไม่สำเร็จ'))
     } finally {
       setLoading(false)
       setCurrent(initialProduct)
+      setBefore(null)
       setOldImage('')
     }
   };
@@ -130,15 +130,15 @@ function WarehouseScreen() {
       setWarehouse_Modal(false)
       setLoading(true);
       try {
-        const warehouseRef = db.collection('warehouseItem').doc(id);
-        await warehouseRef.delete();
+        await franchiseWarehouseDelete({ franchiseId, itemId: id });
         dispatch(deleteNormalWarehouse(id));
         toastSuccess('ลบรายการสินค้า สำเร็จ');
       } catch (error) {
-        alert(error)
+        toastError(apiErrorMessage(error, 'ลบรายการสินค้าไม่สำเร็จ'))
       } finally {
         setLoading(false);
         setCurrent(initialProduct)
+        setBefore(null)
         setOldImage('')
       }
   };
@@ -150,6 +150,7 @@ function WarehouseScreen() {
       // const thisCategory = new Set(item.category.map(a=>a.id))
       const category = warehouseCategory.flatMap(a=>a.value).filter(b=>thisCategory.has(b.id))
       setCurrent({ ...item, category });
+      setBefore(item);
       setOldImage(item.imageId)
   };
 
@@ -214,7 +215,7 @@ function WarehouseScreen() {
         <Modal_Loading show={modal_Franchise||loading} />
         <Modal_Warehouse
             show={warehouse_Modal}
-            onHide={()=>{setWarehouse_Modal(false);setCurrent(initialProduct)}}
+            onHide={()=>{setWarehouse_Modal(false);setCurrent(initialProduct);setBefore(null)}}
             warehouseCategory={warehouseCategory}
             submit={submit}
             current={current}
@@ -223,7 +224,7 @@ function WarehouseScreen() {
         />
        
         <h2>คลังสินค้าส่วนกลาง</h2>
-        <OneButton {...{ text:'เพิ่มรายการ', submit:()=>{setWarehouse_Modal(true)} }} />
+        <OneButton {...{ text:'เพิ่มรายการ', submit:()=>{setBefore(null);setCurrent(initialProduct);setWarehouse_Modal(true)} }} />
         <br/><br/>
         <SearchAndDownload {...{ placeholder:"ค้นหาด้วยชื่อหรือSKUหรือบาร์โค้ด" , search, setSearch, exportToXlsx }} />
         <br/>

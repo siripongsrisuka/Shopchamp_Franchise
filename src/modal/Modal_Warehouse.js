@@ -54,8 +54,9 @@ function Modal_Warehouse({
 
   // 200%
   async function confirm(){
-      if(!name)return ('กรุณาใส่ชื่อ');
-      if(!price)return ('กรุณาใส่ราคา');
+      // DEV-0002 ก้อน 9f: ราคา 0 บันทึกได้ (ST-130 · server `franchise.warehouseSave`) · เดิม return ข้อความเฉย ๆ ไม่ขึ้นแจ้งเตือน
+      if(!String(name||'').trim())return alert('กรุณาใส่ชื่อ');
+      if(price === '' || price === null || price === undefined || !Number.isFinite(Number(price)) || Number(price) < 0)return alert('กรุณาใส่ราคา');
       submit()
   };
 

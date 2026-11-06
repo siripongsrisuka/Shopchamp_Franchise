@@ -5,10 +5,12 @@ import {
 } from "react-bootstrap";
 import "react-datepicker/dist/react-datepicker.css";
 import { Modal_FindHuman, Modal_Human, Modal_Loading } from "../modal";
-import { updateNormalFieldFranchise } from "../redux/franchiseSlice";
+import { fetchFranchise } from "../redux/franchiseSlice";
 import { OneButton } from "../components";
 import { chainStoreFranchise } from "../configs";
-import { db } from "../db/firestore";
+import { franchiseStaffSave, rightsOf } from "../api/franchiseApi";
+import { apiErrorMessage, serverErrorCode } from "../api/posApi";
+import { toastError, toastSuccess } from "../Utility/function";
 
 const initialHuman = {
     id:'',
@@ -31,30 +33,22 @@ function StaffScreen() {
       return chainStoreFranchise.filter(a=>!a.label)
     },[type,chainStoreFranchise])
  
-    // 200%
+    // DEV-0002 ก้อน 9f: `franchise.staffSave` ทีละคน (census 276 277) · เดิมเขียน humanRight/humanResource ทั้ง array จากค่าเก่า (DI-37 · SF-07)
+    //   คนใหม่ = add · มีอยู่แล้ว = update · ลบ = remove · ชื่อ/เบอร์ server คัดจาก profile ในฐาน (SF-02)
+    //   สำเร็จหรือ 409 = โหลด doc แฟรนไชส์ใหม่ (คนอื่นอาจแก้ไปก่อน)
     async function manageHuman(){
         setHuman_Modal(false)
         const rightIds = new Set(sideBar.map(a=>a.id))
         const { id, rights } = current;
-        const findHuman = humanRight.find(a=>a.id===id);
-        const newHuman = findHuman
-          ?humanRight.map(item=>
-            item.id === id
-              ?{
-                ...current,
-                rights:rights.filter(a=>rightIds.has(a))
-              }
-              :item
-          )
-          :[...humanRight,current]
-        const updatedField = { humanRight:newHuman, humanResource:newHuman.map(a=>a.id) };
+        const exists = humanRight.some(a=>a.id===id);
         setLoading(true);
         try {
-          const franchiseRef = db.collection('franchise').doc(franchiseId);
-          await franchiseRef.update(updatedField);
-          dispatch(updateNormalFieldFranchise(updatedField))
+          const res = await franchiseStaffSave({ franchiseId, op: exists ? 'update' : 'add', staffUid: id, rights: rightsOf(rights.filter(a=>rightIds.has(a))) });
+          toastSuccess(res.unchanged || res.duplicate ? 'สิทธิ์เป็นแบบนี้อยู่แล้ว' : 'บันทึกสิทธิ์ สำเร็จ');
+          dispatch(fetchFranchise(franchiseId));
         } catch (error) {
-          alert(error)
+          toastError(apiErrorMessage(error, 'บันทึกสิทธิ์ไม่สำเร็จ'));
+          if (serverErrorCode(error) === 'staff_exists') dispatch(fetchFranchise(franchiseId));
         } finally {
           setLoading(false);
           setCurrent(initialHuman);
@@ -64,15 +58,13 @@ function StaffScreen() {
     // 200%
     async function deleteHuman(id){
         setHuman_Modal(false);
-        const newHuman = humanRight.filter(a=>a.id!==id);
         setLoading(true);
         try {
-          const updatedField = { humanRight:newHuman, humanResource:newHuman.map(a=>a.id) };
-          const franchiseRef = db.collection('franchise').doc(franchiseId);
-          await franchiseRef.update(updatedField);
-          dispatch(updateNormalFieldFranchise(updatedField))
+          await franchiseStaffSave({ franchiseId, op: 'remove', staffUid: id });
+          toastSuccess('ลบบุคลากร สำเร็จ');
+          dispatch(fetchFranchise(franchiseId));
         } catch (error) {
-          alert(error);
+          toastError(apiErrorMessage(error, 'ลบบุคลากรไม่สำเร็จ'));
         } finally {
           setLoading(false);
           setCurrent(initialHuman)
@@ -81,6 +73,9 @@ function StaffScreen() {
 
     function openHuman(){
       setNewHuman_Modal(false)
+      // คนที่อยู่ในรายชื่อแล้ว = เปิดสิทธิ์เดิมของเขา (เดิมเริ่มจากว่าง แล้วบันทึกทับสิทธิ์เดิม SF-32)
+      const found = humanRight.find(a=>a.id===current.id);
+      if (found) setCurrent({ ...initialHuman, ...found });
       setHuman_Modal(true)
     };
 

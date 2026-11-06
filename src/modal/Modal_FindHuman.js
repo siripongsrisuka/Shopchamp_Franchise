@@ -5,8 +5,10 @@ import {
   Modal,
   Form
 } from "react-bootstrap";
-import { colors, initialProfile } from "../configs";
-import { db } from "../db/firestore";
+import { useSelector } from "react-redux";
+import { colors } from "../configs";
+import { franchiseStaffFind } from "../api/franchiseApi";
+import { apiErrorMessage } from "../api/posApi";
 import { FooterButton, OneButton } from "../components";
 import Modal_Loading from "./Modal_Loading";
 
@@ -27,6 +29,7 @@ function Modal_FindHuman({
     const [profiles, setProfiles] = useState([]);
     const { id:humanId } = current;
     const [loading, setLoading] = useState(false);
+    const { franchise:{ id:franchiseId } } = useSelector((state)=> state.franchise);
 
     function close(){
         setPhoneNumber('')
@@ -40,19 +43,15 @@ function Modal_FindHuman({
     };
 
 
+    // DEV-0002 ก้อน 9f: `franchise.staffFind` (census 282) · ได้แค่ id ชื่อ เบอร์ รูป (เดิม profile ทั้ง doc SF-16)
     async function findProfile(){
         setLoading(true);
         try {
-            const query = await db.collection('profile').where('tel','==',phoneNumber).get();
-            const results = query.docs.map(doc=>({
-                ...initialProfile,
-                ...doc.data(),
-                id:doc.id
-            }))
-            setProfiles(results)
+            const res = await franchiseStaffFind({ franchiseId, tel: phoneNumber.trim() });
+            setProfiles((res.profiles || []).map(({ alreadyStaff, ...p })=>({ ...p, alreadyStaff })))
             setPhoneNumber('')
         } catch (error) {
-            alert(error)
+            alert(apiErrorMessage(error, 'ค้นบัญชีไม่สำเร็จ'))
         } finally {
             setLoading(false);
         }
@@ -88,11 +87,12 @@ function Modal_FindHuman({
         </div>
         <Row  >
             {profiles.map((a)=>{
-                const { name, id } = a;
+                const { name, id, alreadyStaff } = a;
                 let status = humanId===id
                 return <Col key={id} md='6' >
-                            <div onClick={()=>{setCurrent(prev=>({...prev,...a}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?'var(--sc-active)':'var(--sc-surface-2)'}} >
+                            <div data-testid={`find-human-${id}`} onClick={()=>{const { alreadyStaff:_x, ...p } = a; setCurrent(prev=>({...prev,...p}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?'var(--sc-active)':'var(--sc-surface-2)'}} >
                                 <h4>{name}</h4>
+                                {alreadyStaff ? <div style={{fontSize:13,color:'var(--sc-text-2)'}} >อยู่ในรายชื่อแล้ว (จะเปิดสิทธิ์เดิมให้แก้)</div> : null}
                             </div>
                         </Col>
             })}

@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Modal_CategorySetting, Modal_Loading } from "../modal";
 import { colors } from "../configs";
-import { checkCategory2, manageCategory, someInArray, toastSuccess } from "../Utility/function";
+import { checkCategory2, manageCategory, someInArray, toastError, toastSuccess } from "../Utility/function";
 import { updateNormalFieldFranchise } from "../redux/franchiseSlice";
 import { OneButton } from "../components";
-import { db } from "../db/firestore";
+import { franchiseCategorySave, categoryTreeOf } from "../api/franchiseApi";
+import { apiErrorMessage, serverErrorCode } from "../api/posApi";
 
 const { softWhite, dark, two } = colors;
 
@@ -15,21 +16,35 @@ function WarehouseCategoryScreen() {
     const [allSelectedCategory, setAllSelectedCategory] = useState([]);
     const [editCategory_Modal, setEditCategory_Modal] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [modalVersion, setModalVersion] = useState(0); // เปิด modal ใหม่ทุกครั้งเริ่มจากต้นล่าสุด (เดิม useState(value) ค้างค่าแรก)
 
+    // DEV-0002 ก้อน 9f: `franchise.categorySave` (census 266) · ส่งต้นที่จอเห็นตอนเปิด (seen) ⇒ มีคนแก้ไปก่อน = 409 ไม่ทับ (DI-37 · WC-41)
     async function submit(value){
         setEditCategory_Modal(false);
         setLoading(true);
         try {
-          const updatedField = { warehouseCategory:value }
-          const franchiseRef = db.collection('franchise').doc(franchiseId);
-          await franchiseRef.update(updatedField)
-          dispatch(updateNormalFieldFranchise(updatedField));
-          toastSuccess('อัปเดตหมวดหมู่คลังสินค้า สำเร็จ')
-
+          const res = await franchiseCategorySave({
+            franchiseId,
+            warehouseCategory: categoryTreeOf(value),
+            seenWarehouseCategory: warehouseCategory,
+          });
+          if (res.unchanged) {
+            toastSuccess('หมวดหมู่เป็นแบบนี้อยู่แล้ว');
+          } else {
+            dispatch(updateNormalFieldFranchise({ warehouseCategory: res.warehouseCategory || categoryTreeOf(value) }));
+            toastSuccess('อัปเดตหมวดหมู่คลังสินค้า สำเร็จ')
+          }
         } catch (error) {
-          alert(error)
+          const code = serverErrorCode(error);
+          const env = error && error.response && error.response.data;
+          if (code === 'category_changed' && env && Array.isArray(env.warehouseCategory)) {
+            // ต้นล่าสุดจาก server · ผู้ใช้เปิดแก้ใหม่จากต้นนี้
+            dispatch(updateNormalFieldFranchise({ warehouseCategory: env.warehouseCategory }));
+          }
+          toastError(apiErrorMessage(error, 'อัปเดตหมวดหมู่ไม่สำเร็จ'))
         } finally {
           setLoading(false)
+          setModalVersion(v=>v+1)
         }
     }
     
@@ -37,13 +52,14 @@ function WarehouseCategoryScreen() {
       <div style={styles.container} >
         <Modal_Loading show={loading} />
         <Modal_CategorySetting 
+          key={modalVersion}
           show={editCategory_Modal} 
           onHide={()=>{setEditCategory_Modal(false)}}
           value={warehouseCategory}
           submit={submit}
         />
         <h1>สร้างหมวดหมู่สินค้า</h1>
-        <OneButton {...{ text:'แก้ไข', variant:"warning", submit:()=>{setEditCategory_Modal(true)} }} />
+        <OneButton {...{ text:'แก้ไข', variant:"warning", submit:()=>{setModalVersion(v=>v+1);setEditCategory_Modal(true)} }} />
         <div>
           <div style={styles.container3}>
             {warehouseCategory.map((item) => {
