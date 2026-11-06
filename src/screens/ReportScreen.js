@@ -20,7 +20,7 @@ function ReportScreen() {
 
 const styles = {
     container : {
-      width: '100%', height: '100vh', overflow: 'hidden', padding:0, margin:0, backgroundColor:white, marginLeft:'-1rem',marginRight:0
+      width: '100%', height: '100vh', overflow: 'hidden', padding:0, margin:0, backgroundColor:'var(--sc-surface)', marginLeft:'-1rem',marginRight:0
     }
 }
 

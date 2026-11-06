@@ -67,7 +67,7 @@ const styles = {
         height:'100vh'
     },
     container2 : {
-        padding:10,margin:10,backgroundColor:white,borderRadius:20,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'
+        padding:10,margin:10,backgroundColor:'var(--sc-surface)',border:'0.5px solid var(--sc-line)',boxShadow:'var(--sc-shadow)',borderRadius:'var(--sc-radius-lg)',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'
     },
     image : {
         width:'10rem',height:'10rem',objectFit:'cover'

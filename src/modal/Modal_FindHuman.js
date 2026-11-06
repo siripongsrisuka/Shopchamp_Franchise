@@ -91,7 +91,7 @@ function Modal_FindHuman({
                 const { name, id } = a;
                 let status = humanId===id
                 return <Col key={id} md='6' >
-                            <div onClick={()=>{setCurrent(prev=>({...prev,...a}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?three:softWhite}} >
+                            <div onClick={()=>{setCurrent(prev=>({...prev,...a}))}} style={{padding:10,margin:10,borderRadius:20,cursor:'pointer',backgroundColor:status?'var(--sc-active)':'var(--sc-surface-2)'}} >
                                 <h4>{name}</h4>
                             </div>
                         </Col>
@@ -108,7 +108,7 @@ const styles = {
         height:'65vh',overflowY:'auto', padding:0, margin:0
     },
     container2 : {
-        display:'flex', position:'sticky', top:0, backgroundColor:white, padding:10
+        display:'flex', position:'sticky', top:0, backgroundColor:'var(--sc-surface)', padding:10
     },
 }
 export default Modal_FindHuman;

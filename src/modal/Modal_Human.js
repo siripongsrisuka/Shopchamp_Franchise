@@ -88,7 +88,7 @@ function Modal_Human({
                 {sideBar.map((a,i)=>{
                 let status = rights.includes(a.id)
                 return <Col xs ='12' sm='6' md='6' key={i}  >
-                            <div  style={{display:'flex',padding:5,margin:5,backgroundColor:status?softWhite:softGray,borderRadius:5,marginRight:0,cursor:'pointer'}} >
+                            <div  style={{display:'flex',padding:5,margin:5,backgroundColor:status?'var(--sc-surface-2)':'var(--sc-chip)',borderRadius:5,marginRight:0,cursor:'pointer'}} >
                                 <div style={styles.container3} >
                                 {a.topic}
                                 <Switch onChange={(value)=>{manageRights(a.id,value)}} checked={status} />
@@ -108,7 +108,7 @@ const styles = {
         marginBottom:'1rem'
     },
     container2 : {
-        position:'sticky', top:0, backgroundColor:white, margin:-10, padding:10, marginTop:-20, zIndex:999
+        position:'sticky', top:0, backgroundColor:'var(--sc-surface)', margin:-10, padding:10, marginTop:-20, zIndex:999
     },
     container3 : {
         display:'flex',flexDirection:'column',paddingLeft:10

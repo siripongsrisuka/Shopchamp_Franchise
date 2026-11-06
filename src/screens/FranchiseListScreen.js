@@ -236,7 +236,7 @@ function FranchiseListScreen() {
                     onClick:()=>{exit();setAlert_Modal(initialAlert)},
                     variant:'danger'
                   })
-                }} variant="light" ><i class="bi bi-box-arrow-left"></i></Button>&emsp;
+                }} variant="light" data-testid="franchise-list-logout" aria-label="ออกจากระบบ" ><i className="bi bi-box-arrow-left"></i></Button>&emsp;
           </div>
           <br/>
           <Table striped bordered hover responsive  variant="light" style={styles.container7}  >
@@ -269,10 +269,10 @@ function FranchiseListScreen() {
 
 const styles = {
     container : {
-      backgroundColor:white,height:'100vh'
+      backgroundColor:'var(--sc-bg)',minHeight:'100vh'
     },
     container2 : {
-      backgroundColor:white,display:'flex',justifyContent:'center'
+      backgroundColor:'var(--sc-bg)',display:'flex',justifyContent:'center'
     },
     container3 : {
       width:'10%', textAlign:'center'

@@ -105,8 +105,8 @@ function HomeScreen() {
                     <label >{t('home.password')}</label>
                 </Form.Floating>
                 {!!formData.email && !!formData.password
-                    ?<Button onClick={()=>{checkRegisterUser()}} variant="dark" style={styles.container3} >{t('home.login')}</Button>
-                    :<Button onClick={()=>{alert(t('home.check'))}} variant="secondary" style={styles.container3} >{t('home.login')}</Button>
+                    ?<Button onClick={()=>{checkRegisterUser()}} variant="dark" className="sc-btn-accent" style={styles.container3} data-testid="home-login" >{t('home.login')}</Button>
+                    :<Button onClick={()=>{alert(t('home.check'))}} variant="secondary" style={styles.container3} data-testid="home-login-incomplete" >{t('home.login')}</Button>
                 }
         </div>
     </div>
@@ -115,10 +115,10 @@ function HomeScreen() {
 
 const styles = {
   container : {
-    height:'100vh',display:'flex',justifyContent:'center',alignItems:'center',backgroundColor:three,flexDirection:'column'
+    height:'100vh',display:'flex',justifyContent:'center',alignItems:'center',backgroundColor:'var(--sc-bg)',flexDirection:'column'
   },
   container2 : {
-    backgroundColor:white,borderRadius:50,padding:20,paddingTop:5,display:'flex',flexDirection:'column',alignItems:'center',width:'25%',minWidth:'300px'
+    backgroundColor:'var(--sc-surface)',border:'0.5px solid var(--sc-line)',boxShadow:'var(--sc-shadow)',borderRadius:'var(--sc-radius-lg)',padding:20,paddingTop:5,display:'flex',flexDirection:'column',alignItems:'center',width:'25%',minWidth:'300px'
   },
   container3 : {
     width:'100%',borderRadius:20,marginTop:10,paddingTop:30,paddingBottom:30

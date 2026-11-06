@@ -7,7 +7,7 @@ import {
 import { colors } from "../configs";
 import { createLabel, summary } from "../Utility/function";
 import ChartScreen from "../components/ChartScreen";
-import { Button } from 'rsuite';
+import { ScMetricCard } from "../components/ui";
 import { normalSort } from "../Utility/sort";
 import TimeControlBill from "../components/TimeControlBill";
 
@@ -106,7 +106,7 @@ function DashboardScreen() {
   
   return (
     <div  >
-      <h1>ภาพรวมธุรกิจ</h1>
+      <div className="sc-pagehead"><h1>ภาพรวมธุรกิจ</h1></div>
       <TimeControlBill/>
       <Row  style={styles.container} >
           <Col  lg={12} >
@@ -122,44 +122,14 @@ function DashboardScreen() {
       <Col md='12' lg='12' style={styles.container5} >
                 <div style={styles.container6}>
                     <h5><b>Summary</b></h5>
-                    <Row>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8} color="red" appearance="primary" >
-                          ยอดขายรวม
-                            <h6>{totalPrice}</h6>
-                          </Button>
-                        </Col>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8} color="orange" appearance="primary" >
-                          จำนวนใบเสร็จ
-                            <h6>{totalBill}</h6>
-                            </Button>
-                        </Col>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8} color="yellow" appearance="primary" >
-                          Busket size
-                            <h6>{averageSale}</h6>
-                            </Button>
-                        </Col>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8}color="cyan" appearance="primary" >
-                          ร้านทั้งหมด
-                            <h6>{allShop}</h6>
-                          </Button>
-                        </Col>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8}color="blue" appearance="primary" >
-                          ร้านที่มียอดขาย
-                            <h6>{shopWithSale}</h6>
-                          </Button>
-                        </Col>
-                        <Col xs='12' sm='6' md='4' style={styles.container7} >
-                          <Button style={styles.container8}color="violet" appearance="primary" >
-                          ร้านที่ไม่มียอด
-                            <h6>{shopWithoutSale}</h6>
-                          </Button>
-                        </Col>
-                    </Row>
+                    <div className="sc-cards">
+                        <ScMetricCard label="ยอดขายรวม" value={totalPrice} icon="bi bi-cash-stack" tone="danger" testId="dashboard-total-price" />
+                        <ScMetricCard label="จำนวนใบเสร็จ" value={totalBill} icon="bi bi-receipt" tone="warning" testId="dashboard-total-bill" />
+                        <ScMetricCard label="Busket size" value={averageSale} icon="bi bi-basket" tone="warning" testId="dashboard-average-sale" />
+                        <ScMetricCard label="ร้านทั้งหมด" value={allShop} icon="bi bi-shop" tone="info" testId="dashboard-all-shop" />
+                        <ScMetricCard label="ร้านที่มียอดขาย" value={shopWithSale} icon="bi bi-graph-up-arrow" tone="success" testId="dashboard-shop-with-sale" />
+                        <ScMetricCard label="ร้านที่ไม่มียอด" value={shopWithoutSale} icon="bi bi-graph-down" tone="purple" testId="dashboard-shop-without-sale" />
+                    </div>
                 </div>
             </Col>
       </Row>
@@ -205,10 +175,10 @@ function DashboardScreen() {
 
 const styles = {
   container : {
-    backgroundColor:white,borderRadius:20,marginLeft:0,marginRight:0,marginBottom:20
+    backgroundColor:'var(--sc-surface)',border:'0.5px solid var(--sc-line)',boxShadow:'var(--sc-shadow)',borderRadius:'var(--sc-radius-lg)',marginLeft:0,marginRight:0,marginBottom:20
   },
   container2 : {
-    backgroundColor:white,margin:5,padding:10,borderRadius:20,height:'400px',marginRight:0
+    backgroundColor:'var(--sc-surface)',margin:5,padding:10,borderRadius:'var(--sc-radius-lg)',height:'400px',marginRight:0
   },
   container3 : {
     display:'flex',justifyContent:'space-between',alignItems:'center'
@@ -220,7 +190,7 @@ const styles = {
     padding:0,paddingRight:5
   },
   container6 : {
-    border: `1px solid ${lightGray}`, borderRadius: 20, padding: 10,backgroundColor:white,  marginBottom:20
+    border: '0.5px solid var(--sc-line)', borderRadius: 'var(--sc-radius-lg)', boxShadow:'var(--sc-shadow)', padding: 10,backgroundColor:'var(--sc-surface)',  marginBottom:20
   },
   container7 : {
     marginBottom:'1rem'

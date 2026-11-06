@@ -169,7 +169,7 @@ function Modal_CategorySetting({
                           padding: '10px',
                           borderRadius: '20px',
                           margin: '5px',
-                          backgroundColor: status ? two : softWhite,
+                          backgroundColor: status ? 'var(--sc-active)' : 'var(--sc-surface-2)',
                           minWidth: '200px',
                           textAlign: 'center',
                           cursor:'pointer',
@@ -274,7 +274,7 @@ const styles = {
       padding:10,borderRadius:20,margin:5,backgroundColor:one,minWidth: '250px',cursor:'pointer',display:'flex',alignItems:'center',maxWidth:'300px'
     },
     text : {
-      color: dark
+      color: 'var(--sc-text)'
     }
 }
 

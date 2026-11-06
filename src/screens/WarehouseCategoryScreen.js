@@ -66,13 +66,13 @@ function WarehouseCategoryScreen() {
                             padding: '10px',
                             borderRadius: '20px',
                             margin: '5px',
-                            backgroundColor: status ? two : softWhite,
+                            backgroundColor: status ? 'var(--sc-active)' : 'var(--sc-surface-2)',
                             minWidth: '150px',
                             textAlign: 'center',
                             cursor:'pointer',
                           }}
                         >
-                          <h4 style={{ color: dark}} >{name}</h4>
+                          <h4 style={{ color: 'var(--sc-text)'}} >{name}</h4>
                         </div>
                       );
                     })}

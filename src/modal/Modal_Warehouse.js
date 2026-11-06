@@ -419,7 +419,7 @@ function Modal_Warehouse({
 
 const styles = {
     container : {
-        border: '1px solid #dee2e6',borderRadius:20,backgroundColor:softWhite,padding:0,width:'100%',marginBottom:'1rem'
+        border: '0.5px solid var(--sc-line)',borderRadius:'var(--sc-radius-lg)',backgroundColor:'var(--sc-surface-2)',padding:0,width:'100%',marginBottom:'1rem'
     },
     container2 : {
       marginBottom:'1rem'
@@ -443,7 +443,7 @@ const styles = {
       width:'100%',maxWidth:250,height:undefined,aspectRatio:1 , objectFit: 'cover'
     },
     text : {
-      color:darkGray
+      color:'var(--sc-muted)'
     }
 }
 
