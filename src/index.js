@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './styles/theme.css'; // DEV-0002 ชุดสีกลาง --sc-* (ธีมสว่าง)
 import { store, persistor } from './redux/store';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -8,6 +9,9 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './i18n'; // <--- add this
+
+// DEV-0002 กฎใน theme.css ที่ทับ bootstrap ขึ้นต้น html[data-theme] ⇒ ตั้งก่อน render จอแรก
+document.documentElement.setAttribute('data-theme', 'light');
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 

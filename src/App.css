@@ -17,7 +17,7 @@ body, html {
 .App {
   text-align: center;
   display: flex;
-  background-color: #efefef;
+  background-color: var(--sc-bg);
 }
 
 .App-logo {
@@ -32,13 +32,13 @@ body, html {
 }
 
 .sidebar {
-  background-color: white;
+  background-color: var(--sc-sidebar);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: var(--sc-sidebar-text);
   width: 300px;
 }
 
@@ -46,7 +46,7 @@ body, html {
  /* Sidebar links */
  .sidebar a {
   display: flex;
-  color: black;
+  color: var(--sc-text);
   padding: 16px;
   text-decoration: none;
   align-items: center;
@@ -59,8 +59,8 @@ body, html {
 
 /* Active/current link */
 .sidebar a.active {
-  background-color: #E3DAFF;
-  color: black;
+  background-color: var(--sc-active);
+  color: var(--sc-active-text);
   border-radius: 32px;
   margin: 16px;
 
@@ -72,21 +72,21 @@ body, html {
  */
 /* Links on mouse-over */
 .sidebar a:hover:not(.active) {
-  background-color: #E3DAFF;
-  color: black;
+  background-color: var(--sc-active);
+  color: var(--sc-active-text);
   border-radius: 32px;
   margin: 16px;
 }
 
 .App-header {
-  background-color: white;
+  background-color: var(--sc-surface);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: var(--sc-text);
   width: 300px;
 }
 
@@ -109,11 +109,11 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center; */
-  background-color: rgb(225, 231, 238);
+  background-color: var(--sc-bg);
 }
 
 .table{
-  background-color: white;
+  background-color: var(--sc-surface);
   width:90%;
   max-width: 95%;
   /* max-width: 90%; */
@@ -147,16 +147,16 @@ body, html {
   }
   
   ::-webkit-scrollbar-track {
-    background-color: #343333;
+    background-color: var(--sc-surface-2);
   }
   
   ::-webkit-scrollbar-thumb {
-    background-color: #888;
+    background-color: var(--sc-line-strong);
     border-radius: 5px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
+    background-color: var(--sc-muted);
   }
 
   .loading-screen-transparent .modal-content {

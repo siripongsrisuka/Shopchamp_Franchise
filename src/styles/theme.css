@@ -1,0 +1,203 @@
+/* Shopchamp · DEV-0002 — ชุดสีและหน้าตากลางของเว็บ (ยกจากเว็บพี่น้องตามที่ Pack สั่ง 2026-11-06)
+   ใช้ผ่าน var(--sc-*) ทั้งใน inline style และ CSS
+   ธีมสว่างอย่างเดียว · <html data-theme="light"> ตั้งไว้ที่ public/index.html
+   ⚠️ ไฟล์นี้ถูก import ก่อน bootstrap.min.css (src/index.js) ⇒ กฎที่ทับ bootstrap ต้องขึ้นต้น html[data-theme] เพื่อยก specificity
+   ตารางที่มาของแต่ละค่า = lanes/dev/source/web-theme-from-sibling.md ในบ้าน Shopchamp */
+
+:root,
+:root[data-theme="light"] {
+  --sc-bg: #F6F4F0;
+  --sc-surface: #FFFFFF;
+  --sc-surface-2: #FAF8F5;
+  --sc-text: #211C16;
+  --sc-text-2: #5A5249;
+  --sc-muted: #8A8276;
+  --sc-line: #ECE7DF;
+  --sc-line-strong: #DBD4C8;
+  --sc-brand: #6F4E37;
+  --sc-accent: #E0483D;
+  --sc-accent-text: #FFFFFF;
+  --sc-sidebar: #FFFFFF;
+  --sc-sidebar-text: #2C261F;
+  --sc-active: #FDECEA;
+  --sc-active-text: #C23A2F;
+  --sc-chip: #F1EEE8;
+  --sc-chip-text: #6F4E37;
+
+  /* สีตามความหมาย (การ์ดตัวเลข / สถานะ / ปุ่ม) · คู่ -bg = พื้นอ่อน · ตัวไม่มี -bg = สีตัวอักษร */
+  --sc-info-bg: #E6F1FB;     --sc-info: #185FA5;
+  --sc-success-bg: #E1F5EE;  --sc-success: #0F6E56;
+  --sc-warning-bg: #FAEEDA;  --sc-warning: #854F0B;
+  --sc-danger-bg: #FCEBEB;   --sc-danger: #A32D2D;
+  --sc-purple-bg: #EEEDFE;   --sc-purple: #534AB7;
+
+  --sc-shadow: 0 1px 2px rgba(33, 28, 22, 0.04), 0 1px 3px rgba(33, 28, 22, 0.06);
+
+  --sc-radius-sm: 8px;
+  --sc-radius-md: 10px;
+  --sc-radius-lg: 13px;
+  --sc-sidebar-w: 220px;
+}
+
+/* ---- คลาสกลางของจอ ---- */
+.sc-page { min-height: 100vh; }
+.sc-pagehead { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.sc-pagehead h1 { font-size:21px; font-weight:500; margin:0; color:var(--sc-text); }
+.sc-pagehead .sub { font-size:12.5px; color:var(--sc-muted); margin-top:3px; }
+.sc-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+.sc-tabs { display:inline-flex; gap:4px; padding:4px 10px 0; margin-bottom:14px; background:var(--sc-surface); border:0.5px solid var(--sc-line); border-radius:var(--sc-radius-lg); }
+.sc-tab { appearance:none; background:none; border:0; border-bottom:2px solid transparent; padding:8px 12px; font-size:15px; color:var(--sc-muted); cursor:pointer; }
+.sc-tab.is-active { color:var(--sc-info); border-bottom-color:var(--sc-info); font-weight:500; }
+.sc-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin-bottom:16px; }
+.sc-card { background:var(--sc-surface); border:0.5px solid var(--sc-line); border-radius:var(--sc-radius-lg); box-shadow:var(--sc-shadow); }
+.sc-metric { padding:14px 16px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.sc-metric .lab { font-size:12px; color:var(--sc-muted); }
+.sc-metric .val { font-size:22px; font-weight:500; margin-top:5px; color:var(--sc-text); }
+.sc-metric .val small { font-size:12px; color:var(--sc-muted); font-weight:400; margin-left:3px; }
+.sc-metric .sub { font-size:10.5px; color:var(--sc-muted); margin-top:3px; }
+.sc-metric .ic { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+
+.sc-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.sc-select { background:var(--sc-surface); color:var(--sc-text); border:0.5px solid var(--sc-line); border-radius:var(--sc-radius-md); padding:8px 12px; font-size:12.5px; min-width:160px; height:40px; }
+.sc-select:focus { outline:none; border-color:var(--sc-line-strong); }
+
+.sc-tablewrap { background:var(--sc-surface); border:0.5px solid var(--sc-line); border-radius:var(--sc-radius-lg); overflow-x:auto; box-shadow:var(--sc-shadow); }
+.sc-table { width:100%; border-collapse:collapse; font-size:13px; color:var(--sc-text); }
+.sc-table th { text-align:left; font-weight:500; color:var(--sc-muted); font-size:11px; letter-spacing:.4px; text-transform:uppercase; padding:12px 16px; border-bottom:0.5px solid var(--sc-line); background:var(--sc-surface-2); white-space:nowrap; }
+.sc-table td { padding:12px 16px; border-bottom:0.5px solid var(--sc-line); vertical-align:middle; }
+.sc-table tbody tr:last-child td { border-bottom:none; }
+.sc-table tbody tr:hover td { background:var(--sc-surface-2); }
+.sc-pill { display:inline-block; background:var(--sc-chip); color:var(--sc-chip-text); border-radius:6px; padding:3px 9px; font-size:11px; font-weight:500; }
+.sc-muted { color:var(--sc-muted); font-size:11px; }
+
+/* ---- bootstrap form ---- */
+html[data-theme] .form-control,
+html[data-theme] .form-select {
+  background-color: var(--sc-surface);
+  color: var(--sc-text);
+  border: 0.5px solid var(--sc-line-strong);
+  border-radius: var(--sc-radius-md);
+}
+html[data-theme] .form-control::placeholder { color: var(--sc-muted); opacity: 1; }
+html[data-theme] .form-control:focus,
+html[data-theme] .form-select:focus {
+  background-color: var(--sc-surface);
+  color: var(--sc-text);
+  border-color: var(--sc-line-strong);
+  box-shadow: 0 0 0 3px var(--sc-chip);
+}
+/* ช่อง floating: คืน placeholder โปร่งใสใต้ .form-floating ไม่งั้นเห็น placeholder กับ label ซ้อนกัน (บั๊กที่พี่น้องเจอแล้ว) */
+html[data-theme] .form-floating > label { color: var(--sc-muted); }
+html[data-theme] .form-floating > .form-control::placeholder { color: transparent; }
+html[data-theme] .form-floating > .form-control:focus ~ label,
+html[data-theme] .form-floating > .form-control:not(:placeholder-shown) ~ label { color: var(--sc-muted); }
+html[data-theme] .form-check-input { background-color: var(--sc-surface); border-color: var(--sc-line-strong); }
+html[data-theme] .form-check-input:checked { background-color: var(--sc-accent); border-color: var(--sc-accent); }
+
+/* ---- bootstrap modal (ครอบ Modal_* ทุกตัว) ---- */
+html[data-theme] .modal-content { background: var(--sc-surface); color: var(--sc-text); border: 0.5px solid var(--sc-line); border-radius: var(--sc-radius-lg); box-shadow: var(--sc-shadow); }
+html[data-theme] .modal-header, html[data-theme] .modal-footer { border-color: var(--sc-line); }
+html[data-theme] .modal-title { color: var(--sc-text); font-weight: 500; }
+html[data-theme] .modal-body { color: var(--sc-text); }
+/* modal ซ้อน modal: ให้ทุกชั้น z-index เท่ากันแล้วให้ลำดับใน DOM ตัดสิน ⇒ backdrop ของชั้นลูกอยู่เหนือชั้นแม่ */
+body > .modal, body > .modal-backdrop { z-index: 1055; }
+
+/* ---- bootstrap table ---- */
+html[data-theme] .table { color: var(--sc-text); border-color: var(--sc-line); }
+html[data-theme] .table > :not(caption) > * > * {
+  background-color: var(--sc-surface);
+  color: var(--sc-text);
+  border-color: var(--sc-line);
+}
+html[data-theme] .table-striped > tbody > tr:nth-of-type(odd) > * { background-color: var(--sc-surface-2); box-shadow: none; }
+html[data-theme] .table-hover > tbody > tr:hover > * { background-color: var(--sc-surface-2); box-shadow: none; }
+html[data-theme] .table thead th { background-color: var(--sc-surface-2); color: var(--sc-muted); font-weight: 500; }
+
+/* ---- ปุ่ม ---- */
+.sc-btn { border-radius: var(--sc-radius-md); border:0.5px solid var(--sc-line-strong); background:var(--sc-surface); color:var(--sc-text); padding:8px 16px; font-size:13px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+.sc-btn:hover { background:var(--sc-chip); }
+.sc-btn-accent { background:var(--sc-accent); border-color:var(--sc-accent); color:var(--sc-accent-text); }
+.sc-btn-accent:hover { filter:brightness(0.95); background:var(--sc-accent); }
+/* สีปุ่มคือข้อมูล: danger = ลบ · warning = แก้ไข/จัดการ · success = ยืนยัน/บันทึก · info = ทั่วไป · ❌ ห้ามสลับเพื่อความสวย */
+.sc-btn-danger  { background: var(--sc-danger-bg);  border-color: var(--sc-danger);  color: var(--sc-danger); }
+.sc-btn-success { background: var(--sc-success-bg); border-color: var(--sc-success); color: var(--sc-success); }
+.sc-btn-warning { background: var(--sc-warning-bg); border-color: var(--sc-warning); color: var(--sc-warning); }
+.sc-btn-info    { background: var(--sc-info-bg);    border-color: var(--sc-info);    color: var(--sc-info); }
+/* ต้องอยู่หลัง .sc-btn:hover เสมอ ไม่งั้นชี้เมาส์แล้วปุ่มสีหาย */
+.sc-btn-danger:hover  { background: var(--sc-danger-bg); }
+.sc-btn-success:hover { background: var(--sc-success-bg); }
+.sc-btn-warning:hover { background: var(--sc-warning-bg); }
+.sc-btn-info:hover    { background: var(--sc-info-bg); }
+.sc-btn-danger:hover, .sc-btn-success:hover,
+.sc-btn-warning:hover, .sc-btn-info:hover { filter: brightness(0.96); }
+
+/* ปุ่ม react-bootstrap เดิม (variant) ให้หน้าตาเข้าชุด โดยคงสีตามความหมายเดิม · ไม่แตะ call-site */
+html[data-theme] .btn { border-radius: var(--sc-radius-md); font-size: 13px; font-weight: 500; border-width: 0.5px; }
+html[data-theme] .btn-primary,
+html[data-theme] .btn-info    { background: var(--sc-info-bg);    border-color: var(--sc-info);    color: var(--sc-info); }
+html[data-theme] .btn-success { background: var(--sc-success-bg); border-color: var(--sc-success); color: var(--sc-success); }
+html[data-theme] .btn-warning { background: var(--sc-warning-bg); border-color: var(--sc-warning); color: var(--sc-warning); }
+html[data-theme] .btn-danger  { background: var(--sc-danger-bg);  border-color: var(--sc-danger);  color: var(--sc-danger); }
+/* dark/light/secondary = ปุ่มธรรมดา ไม่มีความหมายเชิงสี ⇒ หน้าตาเดียวกับ .sc-btn (ตารางแปลงเดียวกับพี่น้อง) */
+html[data-theme] .btn-light,
+html[data-theme] .btn-dark,
+html[data-theme] .btn-secondary { background: var(--sc-surface); border-color: var(--sc-line-strong); color: var(--sc-text); }
+html[data-theme] .btn-primary:hover, html[data-theme] .btn-info:hover,
+html[data-theme] .btn-success:hover, html[data-theme] .btn-warning:hover,
+html[data-theme] .btn-danger:hover { filter: brightness(0.96); }
+html[data-theme] .btn-primary:hover, html[data-theme] .btn-info:hover { background: var(--sc-info-bg); color: var(--sc-info); border-color: var(--sc-info); }
+html[data-theme] .btn-success:hover { background: var(--sc-success-bg); color: var(--sc-success); border-color: var(--sc-success); }
+html[data-theme] .btn-warning:hover { background: var(--sc-warning-bg); color: var(--sc-warning); border-color: var(--sc-warning); }
+html[data-theme] .btn-danger:hover  { background: var(--sc-danger-bg);  color: var(--sc-danger);  border-color: var(--sc-danger); }
+html[data-theme] .btn-light:hover, html[data-theme] .btn-dark:hover,
+html[data-theme] .btn-secondary:hover { background: var(--sc-chip); color: var(--sc-text); border-color: var(--sc-line-strong); }
+html[data-theme] .btn-outline-dark,
+html[data-theme] .btn-outline-secondary { border-color: var(--sc-line-strong); color: var(--sc-text); }
+html[data-theme] .btn-outline-dark:hover,
+html[data-theme] .btn-outline-secondary:hover { background: var(--sc-chip); color: var(--sc-text); }
+
+/* ---- MUI TablePagination ---- */
+html[data-theme] .MuiTablePagination-root { color: var(--sc-text); }
+html[data-theme] .MuiTablePagination-root .MuiIconButton-root.Mui-disabled { color: var(--sc-muted); }
+
+/* ---- พื้นฐาน ---- */
+html[data-theme] body {
+  background: var(--sc-bg);
+  color: var(--sc-text);
+}
+
+/* scrollbar เข้าชุด */
+html[data-theme] * { scrollbar-width: thin; scrollbar-color: var(--sc-line-strong) transparent; }
+html[data-theme] *::-webkit-scrollbar { width: 9px; height: 9px; }
+html[data-theme] *::-webkit-scrollbar-track { background: transparent; }
+html[data-theme] *::-webkit-scrollbar-thumb {
+  background: var(--sc-line-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html[data-theme] *::-webkit-scrollbar-thumb:hover { background: var(--sc-muted); background-clip: padding-box; }
+
+/* กราฟ: การ์ดคลิปมุมโค้ง + scroll แนวนอนไม่ทะลุมุม */
+.sc-chartcard { height: 330px; overflow: hidden; }
+.sc-chartscroll { width: 100%; height: 100%; overflow-x: auto; padding: 14px; box-sizing: border-box; }
+
+/* ปุ่ม react-bootstrap ที่จอขอสีเน้น (className="sc-btn-accent") ต้องชนะกฎ .btn-* ข้างบน */
+html[data-theme] .btn.sc-btn-accent,
+html[data-theme] .btn.sc-btn-accent:hover { background: var(--sc-accent); border-color: var(--sc-accent); color: var(--sc-accent-text); }
+html[data-theme] .btn.sc-btn-accent:hover { filter: brightness(0.95); }
+
+/* หัวจอทุกจอในเปลือกเมนู (.sc-page) ใช้ขนาดเดียวกับ .sc-pagehead h1 โดยไม่ต้องแก้ทีละจอ */
+.sc-page h1 { font-size:21px; font-weight:500; color:var(--sc-text); margin:6px 0 14px; }
+.sc-page h4, .sc-page h5 { color:var(--sc-text); }
+
+/* ตาราง bootstrap ที่มี responsive (div.table-responsive) ในเปลือก = กล่องแบบ .sc-tablewrap · หัวตารางแบบ .sc-table th */
+.sc-page .table-responsive { background:var(--sc-surface); border:0.5px solid var(--sc-line); border-radius:var(--sc-radius-lg); box-shadow:var(--sc-shadow); margin-bottom:14px; }
+.sc-page .table-responsive > .table { margin-bottom:0; font-size:13px; }
+html[data-theme] .sc-page .table-bordered > :not(caption) > * > * { border-width:0 0 0.5px 0; }
+html[data-theme] .sc-page .table-bordered > :not(caption) > * { border-width:0; }
+html[data-theme] .sc-page .table thead th { font-size:11px; letter-spacing:.4px; text-transform:uppercase; padding:12px 16px; white-space:nowrap; }
+html[data-theme] .sc-page .table td { padding:10px 16px; vertical-align:middle; }
+/* App.css ตั้ง .table { width:90%; max-width:95% } ⇒ ในกล่องตารางให้เต็มกล่อง ไม่เหลือแถบว่างด้านขวา */
+.sc-page .table-responsive > .table { width:100%; max-width:100%; }

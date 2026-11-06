@@ -3,13 +3,13 @@
     border-radius: 20px;
     margin: 5px;
     cursor: pointer;
-    background-color: #DCDDDE;
+    background-color: var(--sc-chip);
     display: inline-block;
 }
 
 .category:hover {
-    background-color: #E9245F;
-    color: #FFFFFF;
+    background-color: var(--sc-accent);
+    color: var(--sc-accent-text);
   }
 
   /* .category:active,
@@ -27,12 +27,12 @@
 } */
 
 .cart {
-    background-color: #000000;
+    background-color: var(--sc-text);
     border-radius: 100%;
     position: fixed;
     bottom: 15px;
     right: 15px;
-    color: #FFFFFF;
+    color: var(--sc-bg);
     font-size: 25px;
     width: 50px;
     height: 50px;
@@ -48,7 +48,7 @@
   position: fixed;
   bottom: 40px;
   right: 15px;
-  color: #FFFFFF;
+  color: var(--sc-accent-text);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -66,13 +66,13 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  background-color: #FFFFFF;
+  background-color: var(--sc-surface);
   padding: 0px 30px 10px 30px;
 }
 
 .qty {
   position: absolute;
-  background-color: #E9245F;
+  background-color: var(--sc-accent);
   border-radius: 100%;
   font-size: 16px;
   width: 20px;
@@ -85,7 +85,7 @@
 .fixed-div {
     position: fixed;
     width: 100%;
-    background-color: #FFFFFF;
+    background-color: var(--sc-surface);
     top: 0px;
     left: 0px;
     right: 0px;
@@ -149,7 +149,7 @@
     width: 100%;
     overflow-x: auto;
     scrollbar-width: thin; /* for Firefox */
-    scrollbar-color: #888 #f5f5f5; /* for Firefox */
+    scrollbar-color: var(--sc-line-strong) var(--sc-surface-2); /* for Firefox */
   
     /* Hide the default scrollbar for Webkit browsers (Chrome, Safari) */
     &::-webkit-scrollbar {
@@ -157,12 +157,12 @@
     }
   
     &::-webkit-scrollbar-thumb {
-      background-color: #888;
+      background-color: var(--sc-line-strong);
       border-radius: 3px;
     }
   
     &::-webkit-scrollbar-track {
-      background-color: #f5f5f5;
+      background-color: var(--sc-surface-2);
     }
   
     /* Add any additional styling you want for other browsers here */
