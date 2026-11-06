@@ -12,7 +12,7 @@ import {
   Collapse,
 } from "react-bootstrap";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Outlet, NavLink } from 'react-router-dom';
-import { chainStoreFranchise, colors, initialAdmin, initialAlert } from "../configs";
+import { chainStoreFranchise, initialAdmin, initialAlert } from "../configs";
 import { useSelector, useDispatch } from "react-redux";
 import '../styles/Restaurant.css'
 import { logout, updateCurrentFranchise } from "../redux/authSlice";
@@ -23,7 +23,7 @@ import { fetchFranchise } from "../redux/franchiseSlice";
 import { RootImage } from "../components";
 import { fetchShopFranchise } from "../redux/shopSlice";
 
-const { white, softWhite, backgroundColor, dark } = colors;
+// DEV-0002 สีของเปลือกเมนูมาจาก token --sc-* (src/styles/theme.css)
 
 
 function FranchisorScreen() {
@@ -100,7 +100,7 @@ function FranchisorScreen() {
     }
   
   return (
-    <div style={{backgroundColor:colors.backgroundColor}} >
+    <div className="sc-page" style={styles.root} data-testid="screen-franchisor" >
         <Modal_Alert
             show={status}
             onHide={()=>{setAlert_Modal(initialAlert)}}
@@ -111,11 +111,11 @@ function FranchisorScreen() {
         {windowWidth < 576 || short
                 ?<div>
                   <div style={styles.container} >
-                  <Button variant="dark" style={{position:'absolute',top:15,right:10, borderRadius:100}} onClick={backToList} ><i class="bi bi-houses-fill"></i></Button>
+                  <Button variant="light" style={styles.homeBtnTop} onClick={backToList} data-testid="franchisor-home-top" aria-label="กลับรายการแฟรนไชส์" ><i className="bi bi-houses-fill"></i></Button>
 
                       <div style={styles.container2} >
-                        <Dropdown title="&emsp;&emsp;&emsp;เมนู&emsp;&emsp;&emsp;" trigger='click' style={styles.container3}  >
-                            <Accordion style={{minWidth:'200px'}} defaultActiveKey={0}  >
+                        <Dropdown title="&emsp;&emsp;&emsp;เมนู&emsp;&emsp;&emsp;" trigger='click' style={styles.container3} menuStyle={styles.mobileMenu} data-testid="franchisor-menu-dropdown" >
+                            <Accordion style={styles.accordionMenu} defaultActiveKey={0}  >
                               {listDisplay.map((item,index)=>{
                                 const { topic, value } = item;
                                 return <Accordion.Panel key={index} header={topic} eventKey={index+1}  >
@@ -133,11 +133,11 @@ function FranchisorScreen() {
                                 onClick:()=>{exit();setAlert_Modal(initialAlert)},
                                 variant:'danger'
                               })
-                            }} >&emsp;<i class="bi bi-box-arrow-left"></i>&emsp;ออกจากระบบ</Dropdown.Item>
+                            }} >&emsp;<i className="bi bi-box-arrow-left"></i>&emsp;ออกจากระบบ</Dropdown.Item>
                         </Dropdown>&emsp;&emsp;&emsp;&emsp;
                       </div>
-                      <div onClick={()=>{setShort(false)}} style={styles.container4} > 
-                        <i class="bi bi-list"></i>
+                      <div onClick={()=>{setShort(false)}} style={styles.container4} data-testid="franchisor-sidebar-expand" > 
+                        <i className="bi bi-list"></i>
                       </div>
                   </div>
                   {windowWidth < 900
@@ -152,14 +152,14 @@ function FranchisorScreen() {
                 :<div>
                 <div style={styles.container7}>
                     <div style={styles.container8} >
-                      <div onClick={()=>{setShort(true)}} style={styles.container9} > 
-                        <i class="bi bi-list"></i>
+                      <div onClick={()=>{setShort(true)}} style={styles.container9} data-testid="franchisor-sidebar-shrink" > 
+                        <i className="bi bi-list"></i>
                       </div>
                       {imageId
                           ?<img style={styles.container10} src={imageId}/>
                           :<RootImage style={styles.container10} />
                       }
-                      <Button variant="dark" style={{position:'absolute',top:50,left:5, borderRadius:100}} onClick={backToList} ><i class="bi bi-houses-fill"></i></Button>
+                      <Button variant="light" style={styles.homeBtnLeft} onClick={backToList} data-testid="franchisor-home-left" aria-label="กลับรายการแฟรนไชส์" ><i className="bi bi-houses-fill"></i></Button>
                       
                     </div>
                       <div style={styles.container11}>
@@ -187,14 +187,16 @@ function FranchisorScreen() {
                               </React.Fragment>
                           ))}
                         </div>
-                        <div style={{display:'flex',justifyContent:'center',color:white,backgroundColor:dark,padding:10,cursor:'pointer'}} onClick={()=>{setAlert_Modal({ ...initialAlert,status:true, content:`ยืนยัน ออกจากระบบ`, onClick:()=>{exit()}, variant:'danger' })}} >
+                        <div style={styles.logoutBar} data-testid="franchisor-logout-bar" onClick={()=>{setAlert_Modal({ ...initialAlert,status:true, content:`ยืนยัน ออกจากระบบ`, onClick:()=>{exit()}, variant:'danger' })}} >
                           Logout
                         </div>
                       </div>
                      
               </div> 
-              <div style={{width:windowWidth < 576 || short ? '100%' : 'calc(100% - 212px)', marginLeft: windowWidth < 576 ? 0 : '210px',backgroundColor:backgroundColor, height:'100%'}}>
+              <div style={{width:windowWidth < 576 || short ? '100%' : 'calc(100% - 212px)', marginLeft: windowWidth < 576 ? 0 : '210px',backgroundColor:'var(--sc-bg)', minHeight:'100vh'}}>
+                <div style={styles.outletPad}>
                 <Outlet />
+                </div>
             </div>
               </div>
             }
@@ -204,8 +206,30 @@ function FranchisorScreen() {
 };
 
 const styles = {
+  root : {
+    backgroundColor:'var(--sc-bg)'
+  },
+  homeBtnTop : {
+    position:'absolute',top:12,right:10,borderRadius:100,width:36,height:36,padding:0
+  },
+  homeBtnLeft : {
+    position:'absolute',top:50,left:8,borderRadius:100,width:36,height:36,padding:0
+  },
+  accordionMenu : { minWidth:'200px' },
+  // เมนูโหมดแคบยาวเกินจอ = เลื่อนได้ (80px ≈ แถบหัว)
+  mobileMenu : { maxHeight:'calc(100svh - 80px)', overflowY:'auto', overscrollBehavior:'contain' },
+  // ระยะขอบเนื้อหาจอลูกในโหมดกว้าง (เดิมชิดขอบแถบข้าง)
+  outletPad : {
+    padding:'8px 16px 14px 16px'
+  },
+  logoutBar : {
+    display:'flex',justifyContent:'center',alignItems:'center',gap:8,
+    color:'var(--sc-chip-text)',backgroundColor:'var(--sc-chip)',
+    padding:'10px',margin:'12px',borderRadius:'var(--sc-radius-md)',
+    fontSize:13,fontWeight:500,cursor:'pointer'
+  },
   container : {
-    paddingTop:'1rem',paddingBottom:'1rem',backgroundColor:softWhite,width:'100%',display:'flex',paddingRight:'3rem',position:'fixed',top:0,backgroundColor:white,zIndex:99
+    paddingTop:'1rem',paddingBottom:'1rem',width:'100%',display:'flex',alignItems:'center',paddingRight:'3rem',position:'fixed',top:0,backgroundColor:'var(--sc-surface)',borderBottom:'0.5px solid var(--sc-line)',zIndex:99
   },
   container2 : {
     maxWidth:'80vw', whiteSpace: 'nowrap', scrollbarWidth:'thin',zIndex:999,marginLeft:'3rem'
@@ -214,32 +238,34 @@ const styles = {
     paddingLeft:'5px',paddingRight:'5px'
   },
   container4 : {
-    position:'absolute',top:10,left:10,fontSize:30,cursor:'pointer'
+    position:'absolute',top:10,left:10,fontSize:30,cursor:'pointer',color:'var(--sc-sidebar-text)'
   },
   container5 : {
-    width:'100%',paddingTop:'5rem',backgroundColor:backgroundColor, height:'100%',marginLeft:'1rem'
+    width:'100%',paddingTop:'5rem',backgroundColor:'var(--sc-bg)', minHeight:'100vh',paddingLeft:'1rem',paddingRight:'1rem'
   },
 
   container7 : {
-    width: '200px', minWidth: '200px', position: 'fixed',backgroundColor:'#343333'
+    width: '200px', minWidth: '200px', position: 'fixed', top:0, height:'100vh',
+    display:'flex', flexDirection:'column',
+    backgroundColor:'var(--sc-sidebar)', borderRight:'0.5px solid var(--sc-line)', zIndex:60
   },
   container8 : {
     display:'flex',justifyContent:'center'
   },
   container9 : {
-    position:'absolute',top:10,left:10,color:white,fontSize:30,cursor:'pointer'
+    position:'absolute',top:10,left:10,color:'var(--sc-sidebar-text)',fontSize:30,cursor:'pointer'
   },
   container10 : {
-    width:'100px',height:'100px',backgroundColor:'#343333',borderRadius:'100px',objectFit:'cover'
+    width:'80px',height:'80px',backgroundColor:'var(--sc-surface-2)',border:'0.5px solid var(--sc-line)',borderRadius:'100px',objectFit:'cover',marginTop:14
   },
   container11 : {
-    maxHeight: '100vh', overflowY: 'auto',paddingBottom:'6rem'
+    flex:1, minHeight:0, overflowY:'auto', paddingBottom:'2rem'
   },
   container12 : {
-    width: '100%',fontWeight: 'bold',fontSize: 12,
+    width: '100%', fontWeight: 700, fontSize: 13, color: 'var(--sc-text)',
+    letterSpacing: 0.2, padding: '18px 12px 6px 12px',
+    borderTop: '0.5px solid var(--sc-line)', marginTop: 4
   },
- 
-
 }
 
 export default FranchisorScreen;
