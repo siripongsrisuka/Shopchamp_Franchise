@@ -14,6 +14,8 @@ import {
 import { colors } from '../configs';
 
 const { primaryColor, dark } = colors;
+// DEV-0002 แกนสีเทากลางแบบเว็บพี่น้อง · สีชุดข้อมูลคงเดิม
+const AXIS = '#8A8276';
 
   const CustomTooltip = ({ active, payload, }) => {
     if (active && payload && payload.length) {
@@ -57,10 +59,10 @@ function MultiChartScreen({ chart,bars, name, content }) {
             
             {/* <Bar dataKey="uv" stackId="a" fill="#82ca9d" />
             <Bar dataKey="amt" stackId="a" fill="red" /> */}
-            <XAxis dataKey="name" stroke={dark} />
+            <XAxis dataKey="name" stroke={AXIS} />
             <YAxis padding={{ top: 20 }} /> {/* Adds 20% padding on top */}
             <Tooltip content={<CustomTooltip value={{ name:'pv', content:'uv'}} />} />
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#ECE7DF" />
             <Area type="monotone" dataKey="amt" fill={primaryColor} stroke={primaryColor} />
             <Line type="monotone" dataKey="pv" stroke={primaryColor} />
             <Legend />
