@@ -28,7 +28,7 @@ function NavBar({ name, language, setLanguage_Modal, exit }) {
             <div onClick={()=>{setLanguage_Modal(true)}} style={styles.container3}  >
               <h6 style={styles.text2} >{language.image} &emsp;</h6>
             </div>
-            <Button variant='light' onClick={exit} >
+            <Button variant='light' onClick={exit} data-testid="navbar-logout" aria-label="ออกจากระบบ" >
                 <i class="bi bi-box-arrow-right"></i>
             </Button>&emsp;
         </div>
@@ -41,13 +41,13 @@ const styles = {
       paddingTop:0,paddingBottom:0,display:'flex',justifyContent:'space-between'
     },
     container2 : {
-      display:'flex',alignItems:'center',color:white
+      display:'flex',alignItems:'center',color:'var(--sc-text)'
     },
     container3 : {
       cursor:'pointer'
     },
     text : {
-      color:white
+      color:'var(--sc-text)'
     },
     text2 : {
       fontSize:30

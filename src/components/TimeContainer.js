@@ -77,7 +77,7 @@ function TimeContainer({
         </div>&nbsp;
         {/* <Button onClick={search} color="orange" appearance="primary" >ค้นหา</Button> */}
         {windowWidth < 576
-            ?<Button onClick={search} color="orange" appearance="primary" ><i class="bi bi-search"></i></Button>
+            ?<Button onClick={search} color="orange" appearance="primary" data-testid="time-search" aria-label="ค้นหา" ><i class="bi bi-search"></i></Button>
             :<Button onClick={search} color="orange" appearance="primary" >ค้นหา</Button>
         }
     </Container>
@@ -100,13 +100,13 @@ const styles = {
         padding:0,
     },
     container3 : {
-        display:'flex',padding:5,borderRadius:10,border: '1px solid grey',backgroundColor:white,alignItems:'center'
+        display:'flex',padding:5,borderRadius:10,border: '0.5px solid var(--sc-line-strong)',backgroundColor:'var(--sc-surface)',alignItems:'center'
     },
     container4 : {
         paddingLeft:10,paddingRight:10
     },
     container5 : {
-        display:'flex',padding:5,borderRadius:10,border: '1px solid grey',backgroundColor:white,marginLeft:10,alignItems:'center'
+        display:'flex',padding:5,borderRadius:10,border: '0.5px solid var(--sc-line-strong)',backgroundColor:'var(--sc-surface)',marginLeft:10,alignItems:'center'
     }
 }
 

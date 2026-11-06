@@ -35,8 +35,8 @@ function SearchAndBottom({ placeholder, search, setSearch, exportToXlsx, sort=fa
                 />&emsp;
                 {windowWidth < 576
                     ?download
-                        ?<Button variant={variant}onClick={exportToXlsx} ><i class="bi bi-download"></i></Button>
-                        :<Button variant={variant} onClick={exportToXlsx} ><i class="bi bi-plus-circle"></i></Button>
+                        ?<Button variant={variant} onClick={exportToXlsx} data-testid="search-bottom-download" aria-label="ดาวน์โหลด" ><i class="bi bi-download"></i></Button>
+                        :<Button variant={variant} onClick={exportToXlsx} data-testid="search-bottom-add" aria-label="เพิ่ม" ><i class="bi bi-plus-circle"></i></Button>
                     :<Button variant={variant} onClick={exportToXlsx} style={styles.container} >
                         {text}
                     </Button>

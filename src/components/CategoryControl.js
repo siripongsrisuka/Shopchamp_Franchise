@@ -19,8 +19,8 @@ function CategoryControl({ warehouseCategory, categorySetting, setCategorySettin
                         }}
                         className="category"
                         style={{
-                            backgroundColor: length ? redPink : null,
-                            color: length ? white : null,
+                            backgroundColor: length ? 'var(--sc-accent)' : null,
+                            color: length ? 'var(--sc-accent-text)' : null,
                             minWidth: '12rem',
                             display:'flex',
                             justifyContent:'center',
@@ -39,8 +39,8 @@ function CategoryControl({ warehouseCategory, categorySetting, setCategorySettin
                             key={i}
                             className="category"
                             style={{
-                                backgroundColor: status ? redPink : null,
-                                color: status ? white : null,
+                                backgroundColor: status ? 'var(--sc-accent)' : null,
+                                color: status ? 'var(--sc-accent-text)' : null,
                                 padding: '10px', // Adjust padding for a smaller bar
                                 // minWidth: '8rem',
                                 minWidth: '12rem',

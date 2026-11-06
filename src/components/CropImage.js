@@ -255,7 +255,7 @@ function CropImage({onClick, onHide,ratio=4/1}) {
           </div>
           <div>
               <Button onClick={onHide} variant="secondary" >close</Button>
-              <Button style={{backgroundColor:colors.purpleRed,borderColor:colors.purpleRed,marginLeft:20,marginRight:20}} onClick={onDownloadCropClick} >confirm</Button>
+              <Button className="sc-btn sc-btn-accent" style={{marginLeft:20,marginRight:20}} onClick={onDownloadCropClick} >confirm</Button>
             <a
               ref={hiddenAnchorRef}
               download

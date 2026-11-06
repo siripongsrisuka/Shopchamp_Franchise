@@ -27,8 +27,8 @@ function Download({ exportToXlsx}) {
   return <React.Fragment>
             &nbsp;&nbsp;
             {windowWidth < 576
-                ?<Button variant="dark" onClick={exportToXlsx} ><i class="bi bi-download"></i></Button>
-                :<Button variant="dark" onClick={exportToXlsx} style={styles.container} >
+                ?<Button variant="light" onClick={exportToXlsx} data-testid="download-xlsx" aria-label="ดาวน์โหลด" ><i className="bi bi-download"></i></Button>
+                :<Button variant="light" onClick={exportToXlsx} style={styles.container} data-testid="download-xlsx" >
                     {t('reportCancel.download')}
                 </Button>
             }
