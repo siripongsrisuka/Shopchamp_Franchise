@@ -9,6 +9,7 @@ import { stringDateTime3 } from "../Utility/dateTime";
 import { OneButton, SearchControl } from "../components";
 import TablePagination from '@mui/material/TablePagination';
 import { initialAdmin } from "../configs";
+import { withoutStaffSecrets } from "../Utility/sanitize";
 
 function BranchScreen() {
     const dispatch = useDispatch();
@@ -60,11 +61,12 @@ function BranchScreen() {
                 const shopDoc = await transaction.get(shopRef);
                 const shopData = shopDoc.data();
                 transaction.update(shopRef, updatedField);
-                return {
+                // FD-B2: doc ร้านที่อ่านใน transaction ตัดรหัสพนักงานก่อนเข้า redux
+                return withoutStaffSecrets({
                     ...shopData,
                     ...updatedField,
                     id:item.id,
-                };
+                });
             });
             dispatch(addNormalShop(shopData));
             toastSuccess('เปลี่ยนโปรไฟล์เป็นสาขา สำเร็จ');

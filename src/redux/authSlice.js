@@ -44,7 +44,6 @@ export const signin = createAsyncThunk(
   'auth/signin',
   async ({email,password}) => {
 
-    console.log("email"+email+"password"+password)
     let user = {}
     try{
       user = await firebaseAuth.signInWithEmailAndPassword(email.trim(), password);

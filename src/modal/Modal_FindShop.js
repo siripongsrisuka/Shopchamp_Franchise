@@ -9,6 +9,7 @@ import { colors, initialShop } from "../configs";
 import { db } from "../db/firestore";
 import { FooterButton, OneButton } from "../components";
 import Modal_Loading from "./Modal_Loading";
+import { withoutStaffSecrets } from "../Utility/sanitize";
 
 const { softWhite, three, white } = colors;
 
@@ -44,7 +45,8 @@ function Modal_FindShop({
         setLoading(true);
         try {
             const query = await db.collection('shop').where('tel','==',phoneNumber).get();
-            const results = query.docs.map(doc=>({
+            // FD-B2: ตัดรหัสพนักงานทิ้งก่อนเข้า state (Utility/sanitize.js)
+            const results = query.docs.map(doc=>withoutStaffSecrets({
                 ...initialShop,
                 ...doc.data(),
                 id:doc.id

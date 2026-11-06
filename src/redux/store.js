@@ -3,7 +3,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
 import thunk from 'redux-thunk';
-import logger from 'redux-logger'
 
 
 import authReducer from './authSlice'
@@ -65,6 +64,6 @@ import stockLinkReducer from './stockLinkSlice';
 
   export const store = configureStore({
     reducer: persistedReducer,
-    middleware: [thunk, logger],
+    middleware: [thunk], // FD-B2: ไม่ใช้ redux-logger · มันพิมพ์ state ทั้งก้อน (doc ร้าน · รหัสที่กรอกตอน login) ลง console
   })
 export const persistor = persistStore(store)

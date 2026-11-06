@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { db } from "../db/firestore";
 import { formatTime } from '../Utility/function';
+import { withoutStaffSecrets } from '../Utility/sanitize';
 
 
 const initialState = {
@@ -16,12 +17,13 @@ export const fetchShopFranchise = createAsyncThunk(
     await shopRef.get().then((docs)=>{
       docs.forEach((doc)=>{
         const { cutOff, dateTime, ...rest } = doc.data();
-        data.push({
+        // FD-B2: ตัดรหัสพนักงานก่อนเข้า redux / localStorage
+        data.push(withoutStaffSecrets({
           ...rest,
           id:doc.id,
           cutOff:formatTime(cutOff),
           dateTime:formatTime(dateTime),
-        })
+        }))
       })
       
     })
