@@ -26,10 +26,12 @@ export const franchiseBranchAttach = post('franchiseBranchAttach');
 export const franchiseStaffFind = post('franchiseStaffFind');
 export const franchiseStaffSave = post('franchiseStaffSave');
 export const franchiseBillList = post('franchiseBillList');
+/** ยอดแฟรนไชส์ ต่อสาขา รายชั่วโมง รายสินค้า · server คิดด้วยสูตรกลางตัวเดียวกับรายงานร้าน (Pack เคาะ 2026-11-07) · ช่วงละไม่เกิน 31 วัน */
+export const franchiseBreakdown = post('franchiseBreakdown');
 
 // ── ตัวช่วยรูปคำขอ (pure · เทสได้) ────────────────────────────────────────────
 
-/** สิทธิ์ของเมนูยอดขาย (server `franchise.billList` รับตัวใดตัวหนึ่ง) */
+/** สิทธิ์ของเมนูยอดขาย (server `franchise.billList` `franchise.breakdown` รับตัวใดตัวหนึ่ง) */
 export const SALES_RIGHTS = ['100', '103', '104'];
 
 /** ผู้เรียกมีสิทธิ์ตัวนี้ไหม (ทีมงาน = ครบ) · access จาก `franchise.get` */
@@ -138,4 +140,36 @@ export function dayRanges(start, end, max = 31) {
     cur = new Date(to.getFullYear(), to.getMonth(), to.getDate() + 1);
   }
   return out;
+}
+
+// ── รวมผล franchise.breakdown หลายช่วง (ช่วงเกิน 31 วัน) · ❌ ไม่คิดยอดเอง แค่บวกสตางค์ของแต่ละช่วง (แบบ mergeBreakdown ของเว็บเจ้าของร้าน) ──
+const SUM_FIELDS = ['qty', 'count', 'billQty', 'voidQty', 'legacyV1Qty', 'netMissingQty', 'unknownQty'];
+const MONEY_FIELDS = ['totalPrice', 'net', 'billDiscountShare', 'netAfterBillDiscount', 'totalSale', 'currentTotal', 'legacyV1Total', 'voidTotal'];
+const sat = (v) => Math.round((Number(v) || 0) * 100);
+function addRow(into, row) {
+  const out = { ...into };
+  for (const k of SUM_FIELDS) if (row[k] !== undefined) out[k] = Number(((Number(out[k]) || 0) + Number(row[k])).toPrecision(12)) || 0;
+  for (const k of MONEY_FIELDS) if (row[k] !== undefined) out[k] = (sat(out[k]) + sat(row[k])) / 100;
+  return out;
+}
+/** ยอดเฉลี่ยต่อบิล ปัด 2 ตำแหน่ง (สูตรเดียวกับ server · ใช้หลังบวกหลายช่วง) */
+const averageOf = (totalSale, billQty) => (billQty > 0 ? Math.sign(sat(totalSale)) * Math.round(Math.abs(sat(totalSale)) / billQty) / 100 : 0);
+const mergeBy = (lists, keyOf) => {
+  const m = new Map();
+  for (const list of lists) for (const r of list || []) { const k = keyOf(r); m.set(k, m.has(k) ? addRow(m.get(k), r) : { ...r }); }
+  return [...m.values()];
+};
+/** parts = คำตอบ franchise.breakdown ทีละช่วง → {totals, shops, hours, items} ช่วงเดียว */
+export function mergeFranchiseBreakdown(parts) {
+  const list = (parts || []).filter(Boolean);
+  if (!list.length) return { totals: { billQty: 0, totalSale: 0, average: 0, voidQty: 0, voidTotal: 0, shopQty: 0, shopWithSale: 0 }, shops: [], hours: [], items: [] };
+  if (list.length === 1) return { totals: list[0].totals, shops: list[0].shops, hours: list[0].hours, items: list[0].items };
+  let totals = {};
+  for (const p of list) totals = addRow(totals, p.totals || {});
+  const shops = mergeBy(list.map((p) => p.shops), (r) => r.shopId).map((s) => ({ ...s, average: averageOf(s.totalSale, s.billQty) }))
+    .sort((a, b) => b.totalSale - a.totalSale);
+  const hours = mergeBy(list.map((p) => p.hours), (r) => r.key).sort((a, b) => (a.key < b.key ? -1 : 1));
+  const items = mergeBy(list.map((p) => p.items), (r) => r.key).sort((a, b) => b.netAfterBillDiscount - a.netAfterBillDiscount);
+  totals = { ...totals, average: averageOf(totals.totalSale, totals.billQty), shopQty: Math.max(...list.map((p) => (p.totals && p.totals.shopQty) || 0)), shopWithSale: shops.filter((s) => s.billQty > 0).length };
+  return { totals, shops, hours, items };
 }

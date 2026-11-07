@@ -1,4 +1,4 @@
-// franchiseApi.test.js — คำขอทั้ง 17 เส้นของเว็บแฟรนไชส์ผ่าน schema ตัวจริงของสัญญา (ใบ DEV-0002 · ก้อน 9f)
+// franchiseApi.test.js — คำขอทั้ง 18 เส้นของเว็บแฟรนไชส์ (17 ของก้อน 9f + franchise.breakdown ยอดสูตรกลาง)ผ่าน schema ตัวจริงของสัญญา (ใบ DEV-0002 · ก้อน 9f)
 // รัน: CI=true npx react-scripts test --watchAll=false src/api/franchiseApi.test.js
 // schema = `shopchamp-center/packages/schema/dist/index.cjs` (บ้านเดียวกัน · ไม่มีไฟล์ = ข้ามเทสชุด schema)
 import fs from 'fs';
@@ -32,6 +32,7 @@ const SCHEMA_OF = {
   [ENDPOINTS.franchiseStaffFind]: 'FranchiseStaffFindRequest',
   [ENDPOINTS.franchiseStaffSave]: 'FranchiseStaffSaveRequest',
   [ENDPOINTS.franchiseBillList]: 'FranchiseBillListRequest',
+  [ENDPOINTS.franchiseBreakdown]: 'FranchiseBillListRequest', // สัญญา franchise.breakdown ใช้คำขอรูปเดียวกับ billList
 };
 
 const F = 'fr1';
@@ -79,10 +80,11 @@ async function sendAll() {
   await A.franchiseStaffSave({ franchiseId: F, op: 'update', staffUid: 'u2', rights: A.rightsOf([]) });
   await A.franchiseStaffSave({ franchiseId: F, op: 'remove', staffUid: 'u2' });
   for (const r of A.dayRanges(new Date(2026, 0, 1), new Date(2026, 2, 5))) await A.franchiseBillList({ franchiseId: F, ...r });
+  for (const r of A.dayRanges(new Date(2026, 0, 1), new Date(2026, 2, 5))) await A.franchiseBreakdown({ franchiseId: F, ...r });
   return postApi.mock.calls.map(([p, body]) => ({ path: p, body }));
 }
 
-schemaTest('คำขอทุกตัวผ่าน schema ของสัญญา และครบ 17 เส้น', async () => {
+schemaTest('คำขอทุกตัวผ่าน schema ของสัญญา และครบ 18 เส้น', async () => {
   const calls = await sendAll();
   const seen = new Set();
   for (const { path: p, body } of calls) {
@@ -92,7 +94,7 @@ schemaTest('คำขอทุกตัวผ่าน schema ของสัญ
     if (!r.success) throw new Error(`${p} ${JSON.stringify(r.error.issues)} ${JSON.stringify(body)}`);
     seen.add(p);
   }
-  expect(seen.size).toBe(17);
+  expect(seen.size).toBe(18);
   if (process.env.CAPTURE_FILE) fs.writeFileSync(process.env.CAPTURE_FILE, JSON.stringify(calls, null, 1));
 });
 
@@ -133,4 +135,29 @@ test('hasRight / rightsOf: ทีมงานครบ · สิทธิ์ซ�
   expect(A.hasRight({ rights: ['128'] }, '100')).toBe(false);
   expect(A.hasRight(null, '100')).toBe(false);
   expect(A.rightsOf(['128', '128', '723', 'zz', 100])).toEqual(['128', '723', '100']);
+});
+
+test('fetchBill ยิง franchise.breakdown ทีละช่วง (ไม่ยิง billList) · ตัวเลขบนจอมาจาก server ไม่คิดเอง', async () => {
+  const { fetchBill } = require('../redux/billSlice');
+  postApi.mockClear();
+  const part = (sale, qty) => ({ ok: true, totals: { billQty: qty, totalSale: sale, average: sale / qty, voidQty: 1, voidTotal: 50, shopQty: 2, shopWithSale: 1 },
+    shops: [{ shopId: 's1', billQty: qty, totalSale: sale, average: sale / qty, voidQty: 1, voidTotal: 50, inFranchise: true }, { shopId: 's2', billQty: 0, totalSale: 0, average: 0, voidQty: 0, voidTotal: 0, inFranchise: true }],
+    hours: [{ key: '10', billQty: qty, totalSale: sale }], items: [{ key: 'bc:885001', barcode: '885001', name: 'น้ำ', qty, count: qty, totalPrice: sale, net: sale, billDiscountShare: 0.1, netAfterBillDiscount: sale - 0.1 }] });
+  postApi.mockImplementationOnce(async () => part(100.1, 2)).mockImplementationOnce(async () => part(0.2, 1));
+  const action = await fetchBill({ franchiseId: F, startDate: new Date(2026, 0, 1), endDate: new Date(2026, 1, 5) })(jest.fn(), () => ({}), undefined);
+  expect(postApi.mock.calls.map(([p]) => p)).toEqual([ENDPOINTS.franchiseBreakdown, ENDPOINTS.franchiseBreakdown]);
+  expect(postApi.mock.calls.map(([, b]) => b)).toEqual([{ franchiseId: F, fromDay: '20260101', toDay: '20260131' }, { franchiseId: F, fromDay: '20260201', toDay: '20260205' }]);
+  const { sales, voided } = action.payload;
+  // บวกเป็นสตางค์ (100.1 + 0.2 = 100.3 ไม่ใช่ 100.29999) · เฉลี่ยคิดใหม่จากผลรวม
+  expect(sales.totals).toMatchObject({ billQty: 3, totalSale: 100.3, average: 33.43, voidQty: 2, voidTotal: 100, shopQty: 2, shopWithSale: 1 });
+  expect(sales.shops[0]).toMatchObject({ shopId: 's1', billQty: 3, totalSale: 100.3, average: 33.43 });
+  expect(sales.items).toEqual([expect.objectContaining({ key: 'bc:885001', qty: 3, netAfterBillDiscount: 100.1, net: 100.3 })]);
+  expect(sales.hours).toEqual([{ key: '10', billQty: 3, totalSale: 100.3 }]);
+  expect(voided).toEqual({ count: 2, net: 100 });
+});
+
+test('mergeFranchiseBreakdown: ช่วงเดียว = คำตอบ server ตรง ๆ · ไม่มีช่วง = ศูนย์', () => {
+  const one = { totals: { billQty: 1, totalSale: 5 }, shops: [], hours: [], items: [] };
+  expect(A.mergeFranchiseBreakdown([one])).toEqual({ totals: one.totals, shops: [], hours: [], items: [] });
+  expect(A.mergeFranchiseBreakdown([]).totals).toMatchObject({ billQty: 0, totalSale: 0, average: 0 });
 });

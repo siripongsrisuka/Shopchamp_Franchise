@@ -71,10 +71,10 @@ function FranchisorScreen() {
     }
   },[type,access])
 
-  // จอแรก (Dashboard สิทธิ์ 100) · ไม่มีสิทธิ์ = พาไปเมนูแรกที่มีสิทธิ์ (server `franchise.billList` ตอบ 403 · 9f §1)
+  // จอแรก (Dashboard สิทธิ์ 100) · ไม่มีสิทธิ์ = พาไปเมนูแรกที่มีสิทธิ์ (server `franchise.breakdown` ตอบ 403 · 9f §1)
   const firstAllowed = useMemo(()=>sideBar.find(a=>a.to),[sideBar]);
   const path = location.pathname.replace(/\/+$/,'').toLowerCase();
-  // ไม่ render จอลูกระหว่างรอพาไป (กัน Dashboard ยิง billList ก่อนย้ายจอ)
+  // ไม่ render จอลูกระหว่างรอพาไป (กัน Dashboard ยิง breakdown ก่อนย้ายจอ)
   const redirectTo = access && (path === '/franchisor' || path === '/franchisor/dashboard') && !hasRight(access,'100') && firstAllowed
     ? `/franchisor/${firstAllowed.to}` : '';
   useEffect(()=>{

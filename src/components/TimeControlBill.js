@@ -4,7 +4,7 @@ import { fetchBill, updateEndDate, updateStartDate } from "../redux/billSlice";
 import { dayRanges } from "../api/franchiseApi";
 import TimeContainer from "./TimeContainer";
 
-// DEV-0002 ก้อน 9f: ค้นหา = ยิง `franchise.billList` ช่วงที่เลือก (วันธุรกิจตาม cutOff ของสาขา · ไม่นับใบยกเลิก)
+// DEV-0002: ค้นหา = ยิง `franchise.breakdown` ช่วงที่เลือก (สูตรกลาง · วันธุรกิจตาม cutOff ของสาขา · ไม่นับใบยกเลิก · Pack เคาะ 2026-11-07)
 //   เปิดจอแล้วยังไม่เคยโหลดช่วงนี้ของแฟรนไชส์นี้ = โหลดเอง (เดิมโหลดเมื่อยังไม่มีวันไหนในแคชเลย · แคชข้ามแฟรนไชส์ได้ DI-04)
 function TimeControlBill() {
     const dispatch = useDispatch()

@@ -20,4 +20,6 @@ export const ENDPOINTS = {
   franchiseStaffFind: '/pos/franchise/staff-find',
   franchiseStaffSave: '/pos/franchise/staff-save',
   franchiseBillList: '/pos_heavy/franchise-report/bill-list',
+  // Pack เคาะ 2026-11-07: ยอดแฟรนไชส์สูตรกลาง (`api/franchise.breakdown.yaml` · คำขอรูปเดียวกับ billList)
+  franchiseBreakdown: '/pos_heavy/franchise-report/breakdown',
 };

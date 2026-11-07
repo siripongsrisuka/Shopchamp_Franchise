@@ -6,7 +6,7 @@ import {
 import "react-datepicker/dist/react-datepicker.css";
 import { stringYMDHMS3 } from "../Utility/dateTime";
 import { normalSort } from "../Utility/sort";
-import { formatCurrency, goToTop, searchFilterFunction, summary } from "../Utility/function";
+import { formatCurrency, goToTop, searchFilterFunction } from "../Utility/function";
 import { SearchAndDownload, TimeControlBill } from "../components";
 import * as XLSX from 'xlsx';
 import TablePagination from '@mui/material/TablePagination';
@@ -14,7 +14,7 @@ import TablePagination from '@mui/material/TablePagination';
 
 function RankingByShop() {
     const { shops } = useSelector((state)=> state.shop);
-    const { selectedBills, startDate, endDate  } = useSelector((state)=> state.bill);
+    const { sales, startDate, endDate  } = useSelector((state)=> state.bill);
     const [search, setSearch] = useState('');
 
     const [resultLength, setResultLength] = useState(0);
@@ -33,35 +33,28 @@ function RankingByShop() {
         goToTop()
     };
 
+    // DEV-0002 Pack เคาะ 2026-11-07: ยอดต่อสาขามาจาก server `franchise.breakdown` (สูตรกลาง · ไม่นับใบยกเลิก · วันตาม cutOff ของสาขา)
+    //   แถว = สาขาตอนนี้ทุกสาขา (ไม่มียอด = 0) + ร้านที่ออกจากแฟรนไชส์แล้วแต่มีบิลในช่วง (เดิมไม่มีแถว แต่ยอดอยู่ใน Dashboard)
+    //   แถวรวม Busket Size = ยอดรวม ÷ ใบเสร็จรวม (เดิมเอา Busket Size ของทุกสาขามาบวกกัน)
     const { masterData, totalPrice, average, length } = useMemo(()=>{
-      const newShop = shops.map(a=>{
-          const thisBill = selectedBills.filter(b=>b.shopId===a.id)
-          const allTotalPrice = summary(thisBill,'net')
-          const length = thisBill.length
-          const average = length>0?allTotalPrice/length:0
-          return {
-            ...a,
-            allTotalPrice,
-            length,
-            average,
-          }
+      const rowOf = new Map((sales.shops || []).map((r)=>[r.shopId, r]));
+      const current = shops.map((a)=>{
+        const r = rowOf.get(a.id) || {};
+        return { ...a, allTotalPrice: Number(r.totalSale) || 0, length: Number(r.billQty) || 0, average: Number(r.average) || 0 };
       });
-
-      const display = normalSort('allTotalPrice',newShop);
- 
-      const { totalPrice, average, length } = display.reduce((acc,item)=>{
-        acc.totalPrice += Number(item.allTotalPrice);
-        acc.average += item.average;
-        acc.length += item.length;
-        return acc
-      },{ totalPrice:0, average:0, length:0 })
+      const known = new Set(shops.map((a)=>a.id));
+      const left = (sales.shops || []).filter((r)=>!known.has(r.shopId)).map((r)=>({
+        id: r.shopId, name: `${r.shopId} (ไม่ใช่สาขาแล้ว)`, allTotalPrice: r.totalSale, length: r.billQty, average: r.average,
+      }));
+      const display = normalSort('allTotalPrice',[...current, ...left]);
+      const t = sales.totals || {};
       return {
         masterData:display.map(a=>({...a,average:formatCurrency(a.average),allTotalPrice:formatCurrency(a.allTotalPrice)})),
-        totalPrice:formatCurrency(totalPrice),
-        average:formatCurrency(average),
-        length:formatCurrency(length)
+        totalPrice:formatCurrency(Number(t.totalSale) || 0),
+        average:formatCurrency(Number(t.average) || 0),
+        length:formatCurrency(Number(t.billQty) || 0)
       }
-    },[selectedBills,shops]);
+    },[sales,shops]);
 
 
       useEffect(()=>{

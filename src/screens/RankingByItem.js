@@ -21,7 +21,7 @@ const sortOptions = [
 
 
 function RankingByItem() {
-    const { selectedBills, startDate, endDate  } = useSelector((state)=> state.bill);
+    const { sales, startDate, endDate  } = useSelector((state)=> state.bill);
     const [sort_Modal, setSort_Modal] = useState(false);
     const [currentSort, setCurrentSort] = useState({ id: '1', name: 'ยอดขายจาก มาก ไป น้อย', key:'allTotalPrice', type:'normal' },);
     const { name:sortName  } = currentSort;
@@ -43,41 +43,25 @@ function RankingByItem() {
         goToTop()
     };
 
+    // DEV-0002 Pack เคาะ 2026-11-07: ยอดต่อสินค้ามาจาก server `franchise.breakdown` (สูตรกลาง)
+    //   ยอดขาย = หลังกระจายส่วนลดท้ายบิลตามสัดส่วน (netAfterBillDiscount · #23) · รวมข้ามสาขาด้วยบาร์โค้ด (ตัวเลขกับข้อความเป็นตัวเดียวกัน)
+    //   สินค้าไม่มีบาร์โค้ดแยกแถวต่อสาขา (เดิมรวมเป็นแถวเดียวทั้งแฟรนไชส์) · ไม่นับใบยกเลิก
     const { masterData, allTotalPrice, allQty } = useMemo(()=>{
-      let productMap = new Map();
-
-      const thisProduct = selectedBills
-        .flatMap(a => a.product)
-
-      for (const { barcode, qty, net:totalPrice, ...rest } of thisProduct) {
-        if (productMap.has(barcode)) {
-          const item = productMap.get(barcode);
-          item.allQty += qty;
-          item.allTotalPrice += Number(totalPrice);
-        } else {
-          productMap.set(barcode, {
-            ...rest,
-            barcode,
-            qty,
-            totalPrice,
-            allQty: qty,
-            allTotalPrice: Number(totalPrice),
-          });
-        }
-      }
-      const masterData = Array.from(productMap.values());
+      const masterData = (sales.items || []).map((r)=>({
+        key: r.key, name: r.name, barcode: r.barcode, qty: r.qty, allQty: Number(r.qty) || 0,
+        allTotalPrice: Number(r.netAfterBillDiscount) || 0, beforeBillDiscount: Number(r.net) || 0,
+      }));
       const { totalPrice, qty } = masterData.reduce((acc,item)=>{
-        acc.totalPrice += Number(item.allTotalPrice);
+        acc.totalPrice += Math.round(item.allTotalPrice * 100);
         acc.qty += item.allQty;
         return acc
       },{ totalPrice:0, qty:0 })
       return {
         masterData:normalSort('allTotalPrice',masterData),
-        allTotalPrice:formatCurrency(totalPrice),
-        allQty:formatCurrency(qty)
-
+        allTotalPrice:formatCurrency(totalPrice / 100),
+        allQty:formatCurrency(Number(qty.toPrecision(12)))
       }
-    },[selectedBills]);
+    },[sales]);
 
     useEffect(()=>{
         const { key, type } = currentSort;
@@ -165,7 +149,7 @@ function RankingByItem() {
             <tbody  >
             {currentDisplay.map((item, index) => {
                 const { name, allTotalPrice, allQty, no, barcode } = item;
-                return <tr   key={index} >
+                return <tr   key={index} data-testid={`item-row-${item.key}`} >
                             <td style={styles.container6}>{no}.</td>
                             <td style={styles.container6}>{barcode}</td>
                             <td >{name}</td>

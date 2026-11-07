@@ -5,10 +5,9 @@ import {
   Col,
 } from "react-bootstrap";
 import { colors } from "../configs";
-import { createLabel, summary } from "../Utility/function";
+import { createLabel } from "../Utility/function";
 import ChartScreen from "../components/ChartScreen";
 import { ScMetricCard } from "../components/ui";
-import { normalSort } from "../Utility/sort";
 import TimeControlBill from "../components/TimeControlBill";
 
 const { lightGray, white } = colors;
@@ -41,65 +40,36 @@ const translates = {
 
 function DashboardScreen() {
     const { shops } = useSelector((state)=> state.shop);
-    const { selectedBills } = useSelector((state)=> state.bill);
+    const { sales } = useSelector((state)=> state.bill);
 
+  // DEV-0002 Pack เคาะ 2026-11-07: ตัวเลขทุกตัวมาจาก server `franchise.breakdown` (สูตรกลาง) · จอแค่เลือก 10 อันดับและจัดรูป
+  //   ยอดสินค้า = หลังกระจายส่วนลดท้ายบิล (netAfterBillDiscount) · ชั่วโมง = เวลาไทยของเวลาขาย (เดิมเวลาเครื่องที่เปิดเว็บ)
   const { shopWithSale, shopWithoutSale, topSaleProducts, datasets, totalBill, totalPrice, averageSale, allShop, store } = useMemo(()=> {
-    const shopWithSale = new Set(selectedBills.map(a=>a.shopId)).size;
-    const shopWithoutSale = shops.length - shopWithSale;
-    const products = selectedBills.flatMap(a=>a.product);
-    const productMap = new Map();
-    for(const product of products){
-        const existing = productMap.get(product.id);
-        if(existing){
-            existing.net += product.net;
-            productMap.set(product.id, existing);
-        }
-        else {
-            productMap.set(product.id, { name: product.name, net: product.net });
-        }
-
-     
-    };
-
-    const topSaleProducts = normalSort('net',[...productMap.values()]).slice(0,10);
+    const t = sales.totals || {};
     const shopMap = new Map(shops.map(a=>[a.id,a.name]));
-    const topSaleShopsMap = new Map();
-    for(const bill of selectedBills){
-      if(topSaleShopsMap.has(bill.shopId)){
-        const existing = topSaleShopsMap.get(bill.shopId);
-        existing.net += bill.net;
-        topSaleShopsMap.set(bill.shopId, existing);
-      }
-      else {
-        topSaleShopsMap.set(bill.shopId, { name: shopMap.get(bill.shopId), net: bill.net });
-      }
-    }
-    const store = normalSort('net',[...topSaleShopsMap.values()]).slice(0,10);
-
+    const topSaleProducts = (sales.items || []).slice(0,10).map((a)=>({ name: a.name, net: a.netAfterBillDiscount }));
+    const store = (sales.shops || []).filter((a)=>a.billQty>0).slice(0,10).map((a)=>({ name: shopMap.get(a.shopId) || a.shopId, net: a.totalSale }));
+    const byHour = new Map((sales.hours || []).map((h)=>[Number(h.key), h]));
     const datasets = [] // ยอดขายรายชั่วโมง
-    const labels = createLabel(0)
-    for (const item of labels) {
-        let arr = selectedBills.filter((a)=>{return(new Date(a.dateTime).getHours()==item)})
-        datasets.push({name:translates[item],ยอดขายรายชั่วโมง:parseFloat(summary(arr, 'net').toFixed(2)),billQty:arr.length})
+    for (const item of createLabel(0)) {
+        const h = byHour.get(Number(item));
+        datasets.push({name:translates[item],ยอดขายรายชั่วโมง:h ? h.totalSale : 0,billQty:h ? h.billQty : 0})
     };
-
-    const totalPrice = summary(selectedBills, 'net');
-    const totalBill = selectedBills.length;
-    const averageSale = totalBill > 0 ? totalPrice / totalBill : 0;
-    const allShop = shops.length
-    return {  
+    const allShop = Number(t.shopQty) || shops.length;
+    const shopWithSale = Number(t.shopWithSale) || 0;
+    return {
       shopWithSale,
-      shopWithoutSale,
+      shopWithoutSale: Math.max(0, allShop - (sales.shops || []).filter((a)=>a.inFranchise && a.billQty>0).length),
       topSaleProducts,
-      totalPrice,
-      totalBill,
+      totalPrice: Number(t.totalSale) || 0,
+      totalBill: Number(t.billQty) || 0,
       datasets,
-      averageSale:parseFloat(averageSale.toFixed(2)),
+      averageSale: Number(t.average) || 0,
       allShop,
       store
     };
 
-  }, [selectedBills, shops]);
+  }, [sales, shops]);
 
 
 
