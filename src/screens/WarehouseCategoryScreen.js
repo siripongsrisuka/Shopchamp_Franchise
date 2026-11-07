@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Modal_CategorySetting, Modal_Loading } from "../modal";
 import { colors } from "../configs";
 import { checkCategory2, manageCategory, someInArray, toastError, toastSuccess } from "../Utility/function";
-import { updateNormalFieldFranchise } from "../redux/franchiseSlice";
+import { updateNormalFieldFranchise, selectReadOnly } from "../redux/franchiseSlice";
 import { OneButton } from "../components";
 import { franchiseCategorySave, categoryTreeOf } from "../api/franchiseApi";
 import { apiErrorMessage, serverErrorCode } from "../api/posApi";
@@ -13,6 +13,7 @@ const { softWhite, dark, two } = colors;
 function WarehouseCategoryScreen() {
     const dispatch = useDispatch();
     const { franchise: { warehouseCategory, id:franchiseId } } = useSelector((state)=> state.franchise);
+    const readOnly = useSelector(selectReadOnly); // DEV-0001 watcher: ซ่อนปุ่มแก้
     const [allSelectedCategory, setAllSelectedCategory] = useState([]);
     const [editCategory_Modal, setEditCategory_Modal] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -59,7 +60,7 @@ function WarehouseCategoryScreen() {
           submit={submit}
         />
         <h1>สร้างหมวดหมู่สินค้า</h1>
-        <OneButton {...{ text:'แก้ไข', variant:"warning", submit:()=>{setModalVersion(v=>v+1);setEditCategory_Modal(true)} }} />
+        {!readOnly && <OneButton {...{ text:'แก้ไข', variant:"warning", submit:()=>{setModalVersion(v=>v+1);setEditCategory_Modal(true)} }} />}
         <div>
           <div style={styles.container3}>
             {warehouseCategory.map((item) => {

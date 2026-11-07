@@ -161,3 +161,20 @@ test('mergeFranchiseBreakdown: ช่วงเดียว = คำตอบ ser
   expect(A.mergeFranchiseBreakdown([one])).toEqual({ totals: one.totals, shops: [], hours: [], items: [] });
   expect(A.mergeFranchiseBreakdown([]).totals).toMatchObject({ billQty: 0, totalSale: 0, average: 0 });
 });
+
+test('ทีมงาน (DEV-0001 watcher): staffRoleOf · isReadOnlyAccess · isStaffAccess · fail-closed', () => {
+  expect(A.staffRoleOf({ staffRole: 'watcher' })).toBe('watcher');
+  expect(A.staffRoleOf({ staffRole: 'root', byAdmin: true })).toBe('root');
+  expect(A.staffRoleOf({ byAdmin: true })).toBe('root');
+  [undefined, null, {}, { staffRole: 'admin' }, { staffRole: 'none' }, { byAdmin: 'true' }].forEach((r) => expect(A.staffRoleOf(r)).toBe('none'));
+  const watcher = { rights: ['100'], watcher: true, readOnly: true };
+  const root = { rights: ['100'], byAdmin: true };
+  expect(A.isReadOnlyAccess(watcher)).toBe(true);
+  expect(A.isReadOnlyAccess(root)).toBe(false);
+  expect(A.isReadOnlyAccess({ rights: ['100'] })).toBe(false);
+  expect(A.isReadOnlyAccess(null)).toBe(false);
+  expect(A.isStaffAccess(watcher)).toBe(true);
+  expect(A.isStaffAccess(root)).toBe(true);
+  expect(A.isStaffAccess({ rights: ['100'] })).toBe(false);
+  expect(A.isStaffAccess(null)).toBe(false);
+});

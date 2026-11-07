@@ -77,9 +77,13 @@ export const isNoResponse = (error) => !!error && !error.response;
 export const serverErrorCode = (error) => (envelope(error) && envelope(error).error) || '';
 
 /** ข้อความไทยสำหรับแสดงผู้ใช้ */
+/** DEV-0001 watcher: บัญชีทีมงานระดับดู เขียนไม่ได้ */
+export const WATCHER_READ_ONLY_MESSAGE = 'บัญชีทีมงานดูได้อย่างเดียว';
+
 export const apiErrorMessage = (error, fallback = 'ทำรายการไม่สำเร็จ') => {
   if (isNotDeployed(error)) return NOT_DEPLOYED_MESSAGE;
   if (isNoResponse(error)) return 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่';
   const env = envelope(error);
+  if (env && env.error === 'watcher_read_only') return WATCHER_READ_ONLY_MESSAGE;
   return (env && env.message) || fallback;
 };

@@ -4,7 +4,7 @@ import { Modal_FindShop, Modal_Loading } from "../modal";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchShopFranchise } from "../redux/shopSlice";
 import { formatTime, goToTop, searchFilterFunction, toastError, toastSuccess } from "../Utility/function";
-import { franchiseBranchAttach } from "../api/franchiseApi";
+import { franchiseBranchAttach, isStaffAccess } from "../api/franchiseApi";
 import { apiErrorMessage, serverErrorCode } from "../api/posApi";
 import { stringDateTime3 } from "../Utility/dateTime";
 import { OneButton, SearchControl } from "../components";
@@ -14,8 +14,9 @@ function BranchScreen() {
     const dispatch = useDispatch();
     const { franchise : { id:franchiseId }, access } = useSelector((state)=> state.franchise);
     const { shops } = useSelector((state)=> state.shop);
-    // ปุ่มผูกสาขา = ทีมงานเท่านั้น ตามเดิม · ทีมงานหรือไม่ server ตัดสิน (`franchise.get` › access.byAdmin) แทนชุด uid ในเว็บ
-    const isAdmin = !!(access && access.byAdmin);
+    // ปุ่มค้น/ผูกสาขา = ทีมงานเท่านั้น ตามเดิม · ทีมงานหรือไม่ server ตัดสิน (`franchise.get` › access.byAdmin = root · access.watcher = watcher)
+    //   watcher ผูกสาขาได้ (ข้อยกเว้นเส้นเขียนเดียวของ watcher · DEV-0001 Pack เคาะ 2026-11-07)
+    const isAdmin = isStaffAccess(access);
 
     const [newShop_Modal, setNewShop_Modal] = useState(false);
     const [thisProfile, setThisProfile] = useState({ name:'', id:'', imageId:'', tel:''});

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal_Franchise, Modal_Loading } from "../modal";
 import { useSelector, useDispatch } from "react-redux";
-import { updateNormalFieldFranchise } from "../redux/franchiseSlice";
+import { updateNormalFieldFranchise, selectReadOnly } from "../redux/franchiseSlice";
 import { prepareFirebaseImage } from "../db/firestore";
 import { franchiseProfileUpdate } from "../api/franchiseApi";
 import { apiErrorMessage } from "../api/posApi";
@@ -14,6 +14,7 @@ const { white } = colors;
 function ProfileScreen() {
     const dispatch = useDispatch();
     const {  franchise } = useSelector((state)=> state.franchise);
+    const readOnly = useSelector(selectReadOnly); // DEV-0001 watcher: ซ่อนปุ่มแก้
     
     const [current, setCurrent] = useState(franchise);
     const { name, imageId, id:franchiseId } = current;
@@ -57,7 +58,7 @@ function ProfileScreen() {
             submit={submit}
         />
       <h1>{name}</h1>
-      <OneButton {...{ text:'จัดการ', submit:()=>{setFranchise_Modal(true)} }} />
+      {!readOnly && <OneButton {...{ text:'จัดการ', submit:()=>{setFranchise_Modal(true)} }} />}
       <div style={styles.container2} >
           <h5>โลโก้แบรนด์</h5>
           {imageId

@@ -9,7 +9,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, Outlet, NavLink
 import { Modal_Alert, Modal_OneInput, Modal_Splash } from "../modal";
 import { updateCurrentFranchise } from "../redux/authSlice";
 import { fetchNormalFranchise } from "../redux/franchiseSlice";
-import { franchiseList, franchiseCreate, franchiseGet } from "../api/franchiseApi";
+import { franchiseList, franchiseCreate, franchiseGet, staffRoleOf } from "../api/franchiseApi";
 import { apiErrorMessage, newRequestId } from "../api/posApi";
 import { clearBill } from "../redux/billSlice";
 import { clearWarehouse } from "../redux/warehouseSlice";
@@ -38,6 +38,9 @@ function FranchiseListScreen() {
 
  
     // DEV-0002 ก้อน 9f: ทีมงานหรือไม่ = server ตัดสิน (`franchise.list` คืน byAdmin) · ไม่ใช้ชุด uid ที่ฝังในเว็บแล้ว
+    // DEV-0001 watcher: `franchise.list` › staffRole · watcher สร้างแฟรนไชส์ไม่ได้ (ซ่อนปุ่ม) · ไม่ persist
+    const [staffRole, setStaffRole] = useState('none');
+    const readOnly = staffRole === 'watcher';
     const [createUUID, setCreateUUID] = useState(newRequestId()); // รหัสกันกดซ้ำของการสร้าง 1 ครั้ง (FL-40)
     useEffect(()=>{
       fetchPorts()
@@ -55,13 +58,15 @@ function FranchiseListScreen() {
     async function fetchPorts() {
       try {
         const res = await franchiseList();
+        const role = staffRoleOf(res);
+        setStaffRole(role);
         const arr = (res.franchises || []).map(({ timestamp, ...rest })=>({
           ...rest,
           timestamp: timestamp ? new Date(timestamp) : null,
         }));
         if (arr.length===0) {
           setPorts([]);
-          setFranchise_Modal(true);
+          if (role !== 'watcher') setFranchise_Modal(true);
           return;
         }
         setPorts(normalSort('timestamp',arr));
@@ -169,7 +174,7 @@ function FranchiseListScreen() {
         <React.Fragment>
           <div style={styles.container6} >
           &emsp;<SearchControl {...{ placeholder:'ค้นหาด้วยชื่อแฟรนไชส์', search, setSearch }} />&emsp;
-              <OneButton {...{ text:'เพิ่มแฟรนไชส์', variant:'warning', submit:()=>{setFranchise_Modal(true)} }} />&emsp;
+              {!readOnly && <><OneButton {...{ text:'เพิ่มแฟรนไชส์', variant:'warning', submit:()=>{setFranchise_Modal(true)} }} />&emsp;</>}
                 <Button onClick={()=>{
                   setAlert_Modal({
                     status:true,

@@ -10,6 +10,7 @@ import { franchiseLinkSave, franchiseLinkDelete, linkSaveBody } from "../api/fra
 import { apiErrorMessage, newRequestId } from "../api/posApi";
 import { Modal_Loading, Modal_StockLink } from "../modal";
 import { fetchWarehouse } from "../redux/warehouseSlice";
+import { selectReadOnly } from "../redux/franchiseSlice";
 
 const initialStockLink = {
     shopId:'',
@@ -32,6 +33,7 @@ function StockLinkScreen() {
     const dispatch = useDispatch();
     const { stockLinks } = useSelector((state)=> state.stockLink);
     const { franchise : { id:franchiseId } } = useSelector((state)=> state.franchise);
+    const readOnly = useSelector(selectReadOnly); // DEV-0001 watcher: ซ่อนปุ่มเพิ่ม/จัดการผูกสต๊อก
     const [stockLink_Modal, setStockLink_Modal] = useState(false);
     const [current, setCurrent] = useState(initialStockLink);
     const [loading, setLoading] = useState(false);
@@ -110,7 +112,7 @@ function StockLinkScreen() {
         setCurrent={setCurrent}
         deleteStockLink={deleteStockLink}
       />
-      <OneButton {...{ text:'เพิ่มผูกสต๊อก', submit:()=>{openStockLinkModal({})}, variant:'warning' }} />
+      {!readOnly && <OneButton {...{ text:'เพิ่มผูกสต๊อก', submit:()=>{openStockLinkModal({})}, variant:'warning' }} />}
       <br/><br/>
       <SearchControl {...{ search, setSearch, placeholder:"ค้นหาด้วยชื่อกลุ่ม" }} />
       <br/>
@@ -133,7 +135,7 @@ function StockLinkScreen() {
                                 {stockLink.map(i=>i.name).join(', ')}
                             </td>
                             <td style={styles.container4}>
-                                <OneButton {...{ text:'จัดการ', submit:()=>{openStockLinkModal(item)}, variant:'warning' }} />
+                                {!readOnly && <OneButton {...{ text:'จัดการ', submit:()=>{openStockLinkModal(item)}, variant:'warning' }} />}
                             </td>
                         </tr>
             })}

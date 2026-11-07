@@ -37,6 +37,23 @@ export const SALES_RIGHTS = ['100', '103', '104'];
 /** ผู้เรียกมีสิทธิ์ตัวนี้ไหม (ทีมงาน = ครบ) · access จาก `franchise.get` */
 export const hasRight = (access, id) => !!access && (access.byAdmin === true || (Array.isArray(access.rights) && access.rights.includes(id)));
 
+// ── ทีมงาน (DEV-0001 watcher · Pack เคาะ 2026-11-07) ─────────────────────────────
+//   franchise.list › staffRole 'watcher'|'root' (ไม่มี = ไม่ใช่ทีมงาน) · franchise.get › access {rights, byAdmin?} (root) | {rights, watcher, readOnly} (watcher)
+//   watcher เขียนไม่ได้ทุกเส้น ยกเว้นค้นสาขา (branchFind) และผูกสาขา (branchAttach) · server ปัดซ้ำด้วย 403 watcher_read_only
+
+/** staffRole จาก franchise.list · ค่าอื่นทุกแบบ = 'none' (fail-closed) */
+export const staffRoleOf = (res) => {
+  const v = res && res.staffRole;
+  if (v === 'watcher' || v === 'root') return v;
+  return res && res.byAdmin === true ? 'root' : 'none';
+};
+
+/** access นี้ดูอย่างเดียวไหม (watcher) */
+export const isReadOnlyAccess = (access) => !!access && (access.readOnly === true || access.watcher === true);
+
+/** ทีมงาน (root หรือ watcher) · ใช้เปิดปุ่มค้น/ผูกสาขา */
+export const isStaffAccess = (access) => !!access && (access.byAdmin === true || isReadOnlyAccess(access));
+
 /** ต้นหมวดรูปที่สัญญารับ (strict: node มีแค่ id name level aboveId · ตัดชั้นว่าง) */
 export function categoryTreeOf(levels) {
   return (Array.isArray(levels) ? levels : [])

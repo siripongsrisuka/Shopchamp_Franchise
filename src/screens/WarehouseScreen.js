@@ -4,6 +4,7 @@ import {
 } from "react-bootstrap";
 import { initialProduct, initialWarehouseItem } from "../configs";
 import { useSelector, useDispatch } from "react-redux";
+import { selectReadOnly } from "../redux/franchiseSlice";
 import { compareArrays, formatCurrency, goToTop, searchMultiFunction, summary, toastError, toastSuccess, totalField } from "../Utility/function";
 import Modal_Loading from "../modal/Modal_Loading";
 import '../styles/CartScreen.css'
@@ -22,6 +23,7 @@ function WarehouseScreen() {
   const dispatch = useDispatch();
   const { franchise : { id:franchiseId, warehouseCategory }, modal_Franchise } = useSelector((state)=> state.franchise);
   const { warehouse, warehouseFranchiseId } = useSelector(state=>state.warehouse);
+  const readOnly = useSelector(selectReadOnly); // DEV-0001 watcher: ไม่เปิดหน้าต่างแก้ · ซ่อนปุ่มเพิ่ม
   const [currentDisplay, setCurrentDisplay] = useState([]) // จำนวนที่แสดงในหนึ่งหน้า
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
@@ -145,6 +147,7 @@ function WarehouseScreen() {
 
   // 200%
   function openWarehouse(item){
+      if(readOnly) return;
       setWarehouse_Modal(true);
       const thisCategory = new Set(item.category)
       // const thisCategory = new Set(item.category.map(a=>a.id))
@@ -224,7 +227,7 @@ function WarehouseScreen() {
         />
        
         <h2>คลังสินค้าส่วนกลาง</h2>
-        <OneButton {...{ text:'เพิ่มรายการ', submit:()=>{setBefore(null);setCurrent(initialProduct);setWarehouse_Modal(true)} }} />
+        {!readOnly && <OneButton {...{ text:'เพิ่มรายการ', submit:()=>{setBefore(null);setCurrent(initialProduct);setWarehouse_Modal(true)} }} />}
         <br/><br/>
         <SearchAndDownload {...{ placeholder:"ค้นหาด้วยชื่อหรือSKUหรือบาร์โค้ด" , search, setSearch, exportToXlsx }} />
         <br/>

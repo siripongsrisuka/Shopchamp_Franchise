@@ -5,7 +5,7 @@ import {
 } from "react-bootstrap";
 import "react-datepicker/dist/react-datepicker.css";
 import { Modal_FindHuman, Modal_Human, Modal_Loading } from "../modal";
-import { fetchFranchise } from "../redux/franchiseSlice";
+import { fetchFranchise, selectReadOnly } from "../redux/franchiseSlice";
 import { OneButton } from "../components";
 import { chainStoreFranchise } from "../configs";
 import { franchiseStaffSave, rightsOf } from "../api/franchiseApi";
@@ -22,6 +22,7 @@ const initialHuman = {
 function StaffScreen() {
     const dispatch = useDispatch();
     const { franchise: { id:franchiseId, humanRight, type } } = useSelector((state)=> state.franchise);
+    const readOnly = useSelector(selectReadOnly); // DEV-0001 watcher: ซ่อนปุ่มเพิ่ม/จัดการบุคลากร
    
     const [human_Modal, setHuman_Modal] = useState(false);
     const [current, setCurrent] = useState(initialHuman);
@@ -99,7 +100,7 @@ function StaffScreen() {
             sideBar={sideBar}
         />
       <h1>บุคลากร</h1>
-        <OneButton {...{ text:'+ เพิ่มบุคลากร', submit:()=>{setNewHuman_Modal(true)} }} />
+        {!readOnly && <OneButton {...{ text:'+ เพิ่มบุคลากร', submit:()=>{setNewHuman_Modal(true)} }} />}
         <br/>
         <br/>
       <Table striped bordered hover responsive  variant="light"   >
@@ -123,7 +124,7 @@ function StaffScreen() {
                             <td >{email}</td>
                             <td style={styles.container6}>{rights.length}</td>
                             <td style={styles.container6}>
-                                <OneButton {...{ text:'จัดการ', submit:()=>{setHuman_Modal(true);setCurrent(item)}, variant:'warning' }} />
+                                {!readOnly && <OneButton {...{ text:'จัดการ', submit:()=>{setHuman_Modal(true);setCurrent(item)}, variant:'warning' }} />}
                             </td>
                         </tr>
             })}
