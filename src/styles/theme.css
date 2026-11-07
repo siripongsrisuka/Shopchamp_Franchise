@@ -15,12 +15,12 @@
   --sc-line: #ECE7DF;
   --sc-line-strong: #DBD4C8;
   --sc-brand: #6F4E37;
-  --sc-accent: #E0483D;
-  --sc-accent-text: #FFFFFF;
+  --sc-accent: #F2CC00;   /* เหลือง Shopchamp (Pack สั่ง 2026-11-07 · `shopchamp_app/src/constants/Colors.js:90`) */
+  --sc-accent-text: #211C16;   /* ตัวหนังสือบนเหลืองต้องเข้ม */
   --sc-sidebar: #FFFFFF;
   --sc-sidebar-text: #2C261F;
-  --sc-active: #FDECEA;
-  --sc-active-text: #C23A2F;
+  --sc-active: #FFF7CC;
+  --sc-active-text: #7A6200;
   --sc-chip: #F1EEE8;
   --sc-chip-text: #6F4E37;
 
